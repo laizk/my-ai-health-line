@@ -1,0 +1,22 @@
+services:
+
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: always
+    ports:
+      - "8501:8501"
+    environment:
+      ENV: "development"
+    volumes:
+      - ./apps/frontend:/app     # <— THIS enables hot reload      
+    networks:
+      - common
+
+
+
+networks:
+  common:
+    driver: bridge
