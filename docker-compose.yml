@@ -15,7 +15,19 @@ services:
     networks:
       - common
 
-
+  fastapi:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: backend
+    restart: always
+    ports:
+      - "8010:8010"
+    environment:
+      ENV: "development"
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+    networks:
+      - common
 
 networks:
   common:
