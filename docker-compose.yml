@@ -26,6 +26,8 @@ services:
     environment:
       ENV: "development"
       GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+    volumes:
+      - ./apps/backend:/app     # <— THIS enables hot reload            
     networks:
       - common
 

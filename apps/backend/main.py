@@ -23,21 +23,31 @@ async def health_check():
 API_KEY = os.getenv("GOOGLE_API_KEY")
 
 # Create the agent
-# agent = Agent(
-#     name="helpful_assistant",
-#     model=Gemini(
-#         model="gemini-2.5-flash-lite",
-#         retry_options=retry_config
-#     ),
-#     description="A simple agent that can answer general questions.",
-#     instruction="You are a helpful assistant. Use Google Search for current info or if unsure.",
-#     tools=[google_search],
-# )
+root_agent = Agent(
+    name="helpful_assistant",
+    model=Gemini(
+        model="gemini-2.5-flash",
+        retry_options=retry_config
+    ),
+    description="A simple agent that can answer general questions.",
+    instruction="You are a helpful assistant. Use Google Search for current info or if unsure.",
+    tools=[google_search],
+)
+
+print("✅ Root Agent defined.")
+
+runner = InMemoryRunner(agent=root_agent)
+
+print("✅ Runner created.")
+
 
 class AskRequest(BaseModel):
     prompt: str
 
-# @app.post("/ask")
-# async def ask_agent(req: AskRequest):
-#     reply = agent.run(req.prompt)
-#     return {"response": reply}
+@app.post("/ask")
+async def ask_agent(req: AskRequest):
+    
+    response = await runner.run_debug(
+        req.prompt
+    )    
+    return {"response": response}
