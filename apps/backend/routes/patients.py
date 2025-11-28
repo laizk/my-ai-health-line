@@ -1,11 +1,30 @@
+from datetime import date
+
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload
 from database import get_db
-from models.models import Patient, Condition, Appointment, Referral, Doctor
+from models.models import Patient, Condition, Appointment, Referral, Doctor, Carer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/patients", tags=["patients"])
+
+
+def _calculate_age_group(birthdate: date | None):
+    """Return (age, group) where group can be minor/elderly/adult/None."""
+    if not birthdate:
+        return None, None
+
+    today = date.today()
+    age = (
+        today.year
+        - birthdate.year
+        - ((today.month, today.day) < (birthdate.month, birthdate.day))
+    )
+    if age < 18:
+        return age, "minor"
+    if age >= 65:
+        return age, "elderly"
+    return age, "adult"
 
 @router.get("/{patient_id}")
 async def get_patient_profile(
@@ -19,6 +38,19 @@ async def get_patient_profile(
     )
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
+    age, age_group = _calculate_age_group(patient.birthdate)
+    patient_payload = {
+        "id": patient.id,
+        "full_name": patient.full_name,
+        "birthdate": patient.birthdate,
+        "gender": patient.gender,
+        "contact_number": patient.contact_number,
+        "address": patient.address,
+        "emergency_contact": patient.emergency_contact,
+        "age": age,
+        "age_group": age_group,
+        "requires_carer": age_group in {"minor", "elderly"},
+    }
 
     # Conditions
     conditions = (
@@ -26,6 +58,23 @@ async def get_patient_profile(
             select(Condition).where(Condition.patient_id == patient_id)
         )
     ).all()
+
+    # Carers / guardians
+    carers = (
+        await db.scalars(
+            select(Carer).where(Carer.patient_id == patient_id)
+        )
+    ).all()
+    carers_payload = [
+        {
+            "id": c.id,
+            "full_name": c.full_name,
+            "relationship_to_patient": c.relationship_to_patient,
+            "contact_number": c.contact_number,
+            "notes": c.notes,
+        }
+        for c in carers
+    ]
 
     # Appointments (with doctor join)
     appts_raw = (
@@ -57,8 +106,9 @@ async def get_patient_profile(
     ).all()
 
     return {
-        "patient": patient,
+        "patient": patient_payload,
         "conditions": conditions,
         "appointments": appointments,
         "referrals": referrals,
+        "carers": carers_payload,
     }

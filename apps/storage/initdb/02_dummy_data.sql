@@ -12,6 +12,11 @@ INSERT INTO patients (full_name, birthdate, gender, contact_number, address, eme
 ('Aisha Rahman', '2005-08-12', 'Female', '95671234', 'Sengkang, Singapore', 'Farah Rahman - 93453453'),
 ('Lucas Wong', '2018-03-21', 'Male', '99887766', 'Yishun, Singapore', 'Linda Wong - 93334444');
 
+INSERT INTO carers (patient_id, full_name, relationship_to_patient, contact_number, notes) VALUES
+(3, 'Joy Ong', 'Spouse / Primary Carer', '88992233', 'Supports daily glucose monitoring'),
+(4, 'Farah Rahman', 'Mother / Legal Guardian', '93453453', 'Required for consent and follow-ups'),
+(5, 'Linda Wong', 'Mother', '93334444', 'Handles clinic visits and medication pickups');
+
 INSERT INTO conditions (patient_id, condition_name, severity_level, diagnosed_date) VALUES
 (1, 'High Blood Pressure', 'Moderate', '2021-06-10'),
 (2, 'Eczema', 'Mild', '2023-01-15'),

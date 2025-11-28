@@ -21,15 +21,39 @@ if st.button("Retrieve"):
                 conditions = data["conditions"]
                 appointments = data["appointments"]
                 referrals = data["referrals"]
+                carers = data.get("carers", [])
+                age = patient.get("age")
+                age_group = patient.get("age_group")
+                requires_carer = patient.get("requires_carer")
 
                 # Patient Info
                 st.header("👤 Basic Information")
                 st.write(f"**Name:** {patient['full_name']}")
+                if age is not None:
+                    group_label = age_group if age_group else "unknown group"
+                    st.write(f"**Age:** {age} ({group_label})")
                 st.write(f"**Birthdate:** {patient['birthdate']}")
                 st.write(f"**Gender:** {patient['gender']}")
                 st.write(f"**Contact:** {patient['contact_number']}")
                 st.write(f"**Address:** {patient['address']}")
                 st.write(f"**Emergency Contact:** {patient['emergency_contact']}")
+                if requires_carer:
+                    st.warning("This patient is a minor/elderly and should have an assigned carer or guardian.")
+
+                # Carer / Guardian
+                st.header("🧑‍🤝‍🧑 Carer / Guardian")
+                if len(carers) == 0:
+                    if requires_carer:
+                        st.error("No carer/guardian on file for this patient.")
+                    else:
+                        st.info("No carer or guardian recorded.")
+                else:
+                    for c in carers:
+                        st.subheader(c["full_name"])
+                        st.write(f"**Relationship:** {c['relationship_to_patient']}")
+                        st.write(f"**Contact:** {c['contact_number']}")
+                        if c.get("notes"):
+                            st.caption(f"Notes: {c['notes']}")
 
                 # Conditions
                 st.header("🩺 Medical Conditions")

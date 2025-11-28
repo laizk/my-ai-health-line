@@ -14,6 +14,16 @@ class Patient(Base):
     address = Column(Text)
     emergency_contact = Column(Text)
 
+class Carer(Base):
+    __tablename__ = "carers"
+
+    id = Column(Integer, primary_key=True)
+    patient_id = Column(Integer, ForeignKey("patients.id"))
+    full_name = Column(String)
+    relationship_to_patient = Column(String)
+    contact_number = Column(String)
+    notes = Column(Text)
+
 class Condition(Base):
     __tablename__ = "conditions"
 

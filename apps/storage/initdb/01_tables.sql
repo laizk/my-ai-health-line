@@ -14,6 +14,15 @@ CREATE TABLE patients (
     emergency_contact TEXT
 );
 
+CREATE TABLE carers (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER REFERENCES patients(id) ON DELETE CASCADE,
+    full_name VARCHAR(255) NOT NULL,
+    relationship_to_patient VARCHAR(100),
+    contact_number VARCHAR(50),
+    notes TEXT
+);
+
 CREATE TABLE conditions (
     id SERIAL PRIMARY KEY,
     patient_id INTEGER REFERENCES patients(id) ON DELETE CASCADE,
