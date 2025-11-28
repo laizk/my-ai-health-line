@@ -11,7 +11,9 @@ CREATE TABLE patients (
     gender VARCHAR(10),
     contact_number VARCHAR(50),
     address TEXT,
-    emergency_contact TEXT
+    emergency_contact TEXT,
+    login_username VARCHAR(100),
+    login_password VARCHAR(255)
 );
 
 CREATE TABLE carers (
@@ -20,7 +22,9 @@ CREATE TABLE carers (
     full_name VARCHAR(255) NOT NULL,
     relationship_to_patient VARCHAR(100),
     contact_number VARCHAR(50),
-    notes TEXT
+    notes TEXT,
+    login_username VARCHAR(100),
+    login_password VARCHAR(255)
 );
 
 CREATE TABLE conditions (

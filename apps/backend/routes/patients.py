@@ -1,6 +1,7 @@
 from datetime import date
 
 from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel
 from sqlalchemy import select
 from database import get_db
 from models.models import Patient, Condition, Appointment, Referral, Doctor, Carer
@@ -25,6 +26,74 @@ def _calculate_age_group(birthdate: date | None):
     if age >= 65:
         return age, "elderly"
     return age, "adult"
+
+
+class LoginRequest(BaseModel):
+    role: str
+    username: str
+    password: str
+
+
+@router.post("/login")
+async def login_user(
+    credentials: LoginRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    role = credentials.role.lower()
+
+    if role not in {"patient", "carer"}:
+        raise HTTPException(status_code=400, detail="role must be 'patient' or 'carer'")
+
+    if role == "patient":
+        patient = await db.scalar(
+            select(Patient).where(
+                Patient.login_username == credentials.username,
+                Patient.login_password == credentials.password,
+            )
+        )
+        if not patient:
+            raise HTTPException(status_code=401, detail="Invalid patient credentials")
+
+        return {
+            "role": "patient",
+            "user": {"id": patient.id, "full_name": patient.full_name},
+            "patients": [{"id": patient.id, "full_name": patient.full_name}],
+        }
+
+    # Carer
+    carers = (
+        await db.scalars(
+            select(Carer).where(
+                Carer.login_username == credentials.username,
+                Carer.login_password == credentials.password,
+            )
+        )
+    ).all()
+
+    if not carers:
+        raise HTTPException(status_code=401, detail="Invalid carer credentials")
+
+    patient_ids = {c.patient_id for c in carers if c.patient_id}
+    patient_rows = (
+        await db.scalars(
+            select(Patient).where(Patient.id.in_(patient_ids))
+        )
+    ).all() if patient_ids else []
+
+    patients_payload = [
+        {"id": p.id, "full_name": p.full_name}
+        for p in patient_rows
+    ]
+
+    return {
+        "role": "carer",
+        "user": {
+            "id": carers[0].id,
+            "full_name": carers[0].full_name,
+        },
+        "patients": patients_payload,
+    }
+
 
 @router.get("/{patient_id}")
 async def get_patient_profile(

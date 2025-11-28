@@ -5,8 +5,19 @@ BACKEND_API = "http://backend:8010"
 
 st.title("🧑‍⚕️ Patient Profile")
 
-# Search patient
-patient_id = st.number_input("Enter Patient ID", min_value=1, step=1)
+auth = st.session_state.get("auth")
+if not auth:
+    st.warning("Please login from the Login page to view patient records.")
+    st.stop()
+
+patients = auth.get("patients", [])
+if len(patients) == 0:
+    st.error("No patients linked to this account.")
+    st.stop()
+
+patient_map = {f"{p['full_name']} (ID {p['id']})": p["id"] for p in patients}
+patient_label = st.selectbox("Select Patient", list(patient_map.keys()))
+patient_id = patient_map[patient_label]
 
 if st.button("Retrieve"):
     with st.spinner("Fetching patient data..."):

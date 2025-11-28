@@ -13,6 +13,8 @@ class Patient(Base):
     contact_number = Column(String)
     address = Column(Text)
     emergency_contact = Column(Text)
+    login_username = Column(String)
+    login_password = Column(String)
 
 class Carer(Base):
     __tablename__ = "carers"
@@ -23,6 +25,8 @@ class Carer(Base):
     relationship_to_patient = Column(String)
     contact_number = Column(String)
     notes = Column(Text)
+    login_username = Column(String)
+    login_password = Column(String)
 
 class Condition(Base):
     __tablename__ = "conditions"
