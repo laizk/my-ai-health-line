@@ -46,10 +46,8 @@ if prompt := st.chat_input("What is up?"):
                     .get("content", {})
                     .get("parts", [{}])[0]
                     .get("text", "")
-)
-            print('response_text', response_text)
+            )
             
-            # response = f"Echo: {prompt}"
             # Display assistant response in chat message container
             with st.chat_message("assistant"):
                 st.markdown(response_text)

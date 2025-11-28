@@ -31,6 +31,25 @@ services:
     networks:
       - common
 
+  postgres:
+    image: postgres:18
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_DB_ADMIN_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_DB_ADMIN_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./apps/storage/initdb:/docker-entrypoint-initdb.d
+    networks:
+      - common
+
+volumes:
+  postgres_data:      
+
 networks:
   common:
     driver: bridge
