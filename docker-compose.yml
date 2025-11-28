@@ -26,6 +26,11 @@ services:
     environment:
       ENV: "development"
       GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_DB_ADMIN_USER}
+      DB_PASS: ${POSTGRES_DB_ADMIN_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}      
     volumes:
       - ./apps/backend:/app     # <— THIS enables hot reload            
     networks:

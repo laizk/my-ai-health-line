@@ -1,0 +1,49 @@
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, Text, TIMESTAMP
+from sqlalchemy.orm import declarative_base, relationship
+
+Base = declarative_base()
+
+class Patient(Base):
+    __tablename__ = "patients"
+
+    id = Column(Integer, primary_key=True, index=True)
+    full_name = Column(String)
+    birthdate = Column(Date)
+    gender = Column(String)
+    contact_number = Column(String)
+    address = Column(Text)
+    emergency_contact = Column(Text)
+
+class Condition(Base):
+    __tablename__ = "conditions"
+
+    id = Column(Integer, primary_key=True)
+    patient_id = Column(Integer, ForeignKey("patients.id"))
+    condition_name = Column(String)
+    severity_level = Column(String)
+    diagnosed_date = Column(Date)
+
+class Doctor(Base):
+    __tablename__ = "doctors"
+
+    id = Column(Integer, primary_key=True)
+    full_name = Column(String)
+    specialization = Column(String)
+
+class Appointment(Base):
+    __tablename__ = "appointments"
+
+    id = Column(Integer, primary_key=True)
+    patient_id = Column(Integer, ForeignKey("patients.id"))
+    doctor_id = Column(Integer, ForeignKey("doctors.id"))
+    appointment_date = Column(TIMESTAMP)
+    status = Column(String)
+
+class Referral(Base):
+    __tablename__ = "referrals"
+
+    id = Column(Integer, primary_key=True)
+    appointment_id = Column(Integer, ForeignKey("appointments.id"))
+    referred_to_specialization = Column(String)
+    reason = Column(Text)
+    status = Column(String)

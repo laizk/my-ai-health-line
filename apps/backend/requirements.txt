@@ -2,3 +2,6 @@ fastapi
 uvicorn[standard]
 google-adk
 python-dotenv
+sqlalchemy[asyncio]
+asyncpg
+pydantic-settings
