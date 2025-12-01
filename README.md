@@ -1,14 +1,13 @@
-# MyAIHealthLine
+# My AI Health Line
 **Smart, accessible healthcare — right in your hands.**
 
-MyAIHealthLine is an AI-powered, multi-agent healthcare support system designed to help underserved communities where long clinic queues, limited medical staff, and frequent power interruptions make access to care difficult.  
-The system brings healthcare to the palm of your hand through mobile, SMS, and low-resource–friendly technologies.
+My AI Health Line is an AI-powered, multi-agent healthcare support system designed to help underserved communities where long clinic queues, limited medical staff, and frequent power interruptions make access to care difficult. The system brings healthcare to the palm of your hand through mobile, SMS, and low-resource–friendly technologies.
 
 ---
 
 ## 🚀 Project Overview
 
-MyAIHealthLine uses a cooperative multi-agent setup to:
+My AI Health Line uses a cooperative multi-agent setup to:
 - Register patients and caregivers  
 - Provide symptom-based triage  
 - Assign queue numbers remotely  
@@ -63,132 +62,59 @@ Designed for local deployment using Docker and minimal hardware, it's ideal for 
 ## 📦 Tech Stack
 
 - **Backend:** FastAPI  
-- **Agent Framework:** Custom Python agent orchestrator  
-- **Database:** PostgreSQL (or SQLite for lightweight demo)  
+- **Agent Framework:** Google ADK
+- **Database:** PostgreSQL
 - **Queueing & Scheduling:** Internal agents  
 - **Notifications:** SMS (via Mock API for demo), Email, App  
 - **Deployment:** Docker Compose  
 - **Monitoring:** Basic observability through logs + agent events  
 
 ---
-## Folder Structure
+## 🏗️ Architecture
+![System Architecture](assets/architecture.png)
 
-```
-myaihealthline/
-│
-├── api/
-│   ├── app/
-│   │   ├── main.py
-│   │   ├── db.py
-│   │   ├── models.py
-│   │   ├── schemas.py
-│   │   ├── agents/
-│   │   │   ├── base.py
-│   │   │   ├── concierge_agent.py
-│   │   │   ├── db_agent.py
-│   │   │   ├── scheduler_agent.py
-│   │   │   ├── notification_agent.py
-│   │   │   ├── doctor_assistant_agent.py
-│   │   │   ├── referral_agent.py
-│   │   │   └── medicine_scheduler_agent.py
-│   ├── Dockerfile
-│   └── requirements.txt
-│
-├── infra/
-│   ├── docker-compose.yml
-│   └── nginx/
-│
-├── docs/
-│   ├── architecture_diagram.svg
-│   ├── erd.png
-│   ├── folder_structure.md
-│   └── landing_page.md
-│
-├── tests/
-│
-└── README.md
-```
-
-
----
-
-## 🏗️ Architecture Diagram (Text)
-
-```
-Patient / Guardian (App or SMS)
-            |
-            v
-      Concierge Agent
-            |
-            v
-  +-----------------------+
-  |     Agent Hub         |
-  | (Orchestrator Layer)  |
-  +-----------------------+
-   |        |         |        
-   v        v         v
-DB Agent   Scheduler   Notification
-   |                        |
-   v                        v
-Database  <-->  Doctor Assistant Agent  <-->  Referral Agent
-                                  |
-                                  v
-                        Medicine Scheduler Agent
-```
+It shows:
+- Frontend (Streamlit) calling FastAPI
+- Concierge Agent orchestrating with DB Agent (patient CRUD), memory, and session services
+- Postgres for persistence (patients, carers, appointments, medications, conversations, login sessions)
+The diagram was created to mirror the conversational + agent orchestration pattern used here: a user-facing concierge delegates structured requests (e.g., patient CRUD) to a backend DB-focused agent via function tools.
 
 ---
 
 ## 🗄️ Database Schema (Simplified)
-
 Key tables:
-- **patients**
-- **guardians**
-- **appointments**
-- **visits**
-- **prescriptions**
-- **medication_schedules**
-- **reminders**
-- **referrals**
-- **doctors**
-- **users**
-
-(See docs/ for full ERD.)
+- patients, carers, doctors
+- conditions, appointments, referrals, medication_schedules, notifications
+- users, login_sessions, user_patient_access
+- conversation_sessions, conversation_messages
 
 ---
 
-## 🐳 Deployment (Docker Compose)
-
-1. Clone the repository:
+## 🐳 How to Run (Docker Compose)
+1) Install Docker + Docker Compose.
+2) Clone the repo:
 ```bash
-git clone https://github.com/yourname/myaihealthline
-cd myaihealthline
+git clone https://github.com/laizk/my-ai-health-line
+cd my-ai-health-line
 ```
-
-2. Run with Docker Compose:
+3) Start services:
 ```bash
-docker compose up -d
+docker compose up --build
 ```
-
-3. Access API:
-```
-http://localhost:8000/docs
-```
-
----
+4) Access:
+- Streamlit frontend: http://localhost:8501
+- FastAPI docs: http://localhost:8010/docs
+5) (Optional) Re-seed DB: drop the Postgres volume and restart compose to apply init SQL under `apps/storage/initdb/`.
 
 ## 📱 Features for Low-Resource Communities
 
-- Offline-friendly workflows  
 - SMS fallback for reminders and queue updates  
 - Mobile-friendly doctor and admin UI  
-- Automatic resync after power restoration  
-- Minimal data usage  
 
 ---
 
 ## 🎯 Target Users
 
-- Rural clinics  
 - Municipal health centers  
 - NGOs / humanitarian groups  
 - School clinics  
@@ -213,15 +139,8 @@ This project aims to help communities in need — contributions that improve acc
 
 ---
 
-## 📜 License
-
-MIT License  
-Feel free to use, modify, and deploy for community benefit.
-
----
 
 ## 💙 Acknowledgements
 
-Built as a capstone project for **Kaggle × Google AI Intensive Training (Agents for Good Track)**.  
+Built as a capstone project for **Kaggle × Google AI Intensive Training (Agents for Good Track)** https://www.kaggle.com/competitions/agents-intensive-capstone-project.
 Designed to empower communities through accessible, smart healthcare systems.
-
