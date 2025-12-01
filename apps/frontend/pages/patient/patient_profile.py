@@ -42,77 +42,87 @@ if st.button("Retrieve"):
                 requires_carer = patient.get("requires_carer")
 
                 # Patient Info
-                st.header("👤 Basic Information")
-                st.write(f"**Name:** {patient['full_name']}")
-                if age is not None:
-                    group_label = age_group if age_group else "unknown group"
-                    st.write(f"**Age:** {age} ({group_label})")
-                st.write(f"**Birthdate:** {patient['birthdate']}")
-                st.write(f"**Gender:** {patient['gender']}")
-                st.write(f"**Contact:** {patient['contact_number']}")
-                st.write(f"**Address:** {patient['address']}")
-                st.write(f"**Emergency Contact:** {patient['emergency_contact']}")
-                if requires_carer:
-                    st.warning("This patient is a minor/elderly and should have an assigned carer or guardian.")
+                with st.expander("👤 Basic Information", expanded=True):
+                    st.write(f"**Name:** {patient['full_name']}")
+                    if age is not None:
+                        group_label = age_group if age_group else "unknown group"
+                        st.write(f"**Age:** {age} ({group_label})")
+                    st.write(f"**Birthdate:** {patient['birthdate']}")
+                    st.write(f"**Gender:** {patient['gender']}")
+                    st.write(f"**Contact:** {patient['contact_number']}")
+                    st.write(f"**Address:** {patient['address']}")
+                    st.write(f"**Emergency Contact:** {patient['emergency_contact']}")
+                    if requires_carer:
+                        st.warning("This patient is a minor/elderly and should have an assigned carer or guardian.")
 
                 # Carer / Guardian
-                st.header("🧑‍🤝‍🧑 Carer / Guardian")
-                if len(carers) == 0:
-                    if requires_carer:
-                        st.error("No carer/guardian on file for this patient.")
+                with st.expander("🧑‍🤝‍🧑 Carer / Guardian", expanded=False):
+                    if len(carers) == 0:
+                        if requires_carer:
+                            st.error("No carer/guardian on file for this patient.")
+                        else:
+                            st.info("No carer or guardian recorded.")
                     else:
-                        st.info("No carer or guardian recorded.")
-                else:
-                    for c in carers:
-                        st.subheader(c["full_name"])
-                        st.write(f"**Relationship:** {c['relationship_to_patient']}")
-                        st.write(f"**Contact:** {c['contact_number']}")
-                        if c.get("notes"):
-                            st.caption(f"Notes: {c['notes']}")
+                        for c in carers:
+                            st.markdown(f"**{c['full_name']}** — {c['relationship_to_patient']}")
+                            st.write(f"Contact: {c['contact_number']}")
+                            if c.get("notes"):
+                                st.caption(f"Notes: {c['notes']}")
+                            st.divider()
 
                 # Conditions
-                st.header("🩺 Medical Conditions")
-                if len(conditions) == 0:
-                    st.info("No medical conditions recorded.")
-                else:
-                    for c in conditions:
-                        st.write(f"- **{c['condition_name']}** ({c['severity_level']}) diagnosed on {c['diagnosed_date']}")
+                with st.expander("🩺 Medical Conditions", expanded=False):
+                    if len(conditions) == 0:
+                        st.info("No medical conditions recorded.")
+                    else:
+                        for c in conditions:
+                            st.write(f"- **{c['condition_name']}** ({c['severity_level']}) diagnosed on {c['diagnosed_date']}")
 
                 # Appointments
-                st.header("📅 Appointments")
-                if len(appointments) == 0:
-                    st.info("No appointment history.")
-                else:
-                    for a in appointments:
-                        st.subheader(f"Appointment #{a['appointment_id']}")
-                        st.write(f"**Doctor:** {a['doctor']} ({a['specialization']})")
-                        st.write(f"**Date:** {a['date']}")
-                        st.write(f"**Status:** {a['status']}")
+                with st.expander("📅 Appointments", expanded=False):
+                    if len(appointments) == 0:
+                        st.info("No appointment history.")
+                    else:
+                        for a in appointments:
+                            st.markdown(f"**Appointment #{a['appointment_id']}**")
+                            st.write(f"Doctor: {a['doctor']} ({a['specialization']})")
+                            st.write(f"Date: {a['date']}")
+                            st.write(f"Status: {a['status']}")
+                            st.divider()
 
                 # Referrals
-                st.header("📝 Referrals")
-                if len(referrals) == 0:
-                    st.info("No referrals found.")
-                else:
-                    for r in referrals:
-                        st.write(f"- Referred to **{r['referred_to_specialization']}** → Status: {r['status']}")
-                        st.caption(f"Reason: {r['reason']}")
+                with st.expander("📝 Referrals", expanded=False):
+                    if len(referrals) == 0:
+                        st.info("No referrals found.")
+                    else:
+                        for r in referrals:
+                            st.write(f"- Referred to **{r['referred_to_specialization']}** → Status: {r['status']}")
+                            st.caption(f"Reason: {r['reason']}")
 
                 # Medication Schedules
-                st.header("💊 Medication Schedule")
-                if len(medications) == 0:
-                    st.info("No medication schedules found.")
-                else:
-                    status_colors = {"taken": "green", "pending": "orange", "missed": "red"}
-                    for m in medications:
-                        status = m.get("status", "pending")
-                        color = status_colors.get(status, "gray")
-                        st.markdown(f"**{m['medication_name']}** — {m['dosage']} | {m['frequency']}")
-                        st.write(f"Time: {m['intake_time']} | Start: {m['start_date']} → End: {m['end_date']}")
-                        st.markdown(f"Status: <span style='color:{color}'>{status.upper()}</span>", unsafe_allow_html=True)
-                        if m.get("remarks"):
-                            st.caption(f"Remarks: {m['remarks']}")
-                        st.divider()
+                with st.expander("💊 Medication Schedule", expanded=True):
+                    if len(medications) == 0:
+                        st.info("No medication schedules found.")
+                    else:
+                        table_rows = []
+                        for m in medications:
+                            status = m.get("status", "pending")
+                            status_display = {
+                                "taken": "✅ TAKEN",
+                                "pending": "🟠 PENDING",
+                                "missed": "🔴 MISSED",
+                            }.get(status, status.upper())
+                            table_rows.append({
+                                "Medication": m.get("medication_name", ""),
+                                "Dosage": m.get("dosage", ""),
+                                "Frequency": m.get("frequency", ""),
+                                "Time": m.get("intake_time", ""),
+                                "Start": m.get("start_date", ""),
+                                "End": m.get("end_date", ""),
+                                "Status": status_display,
+                                "Remarks": m.get("remarks", ""),
+                            })
+                        st.dataframe(table_rows, hide_index=True, use_container_width=True)
 
         except Exception as e:
             st.error(str(e))

@@ -3,7 +3,7 @@ import requests
 from pathlib import Path
 from auth_utils import hydrate_auth_from_params, clear_auth
 
-st.set_page_config(page_title="MyAIHealthLine", page_icon="🏥")
+st.set_page_config(page_title="MyAIHealthLine", page_icon="🏥", layout="wide")
 
 # Hydrate session auth from token in query params if present
 hydrate_auth_from_params()
