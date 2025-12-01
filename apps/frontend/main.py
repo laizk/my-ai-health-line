@@ -8,6 +8,7 @@ st.set_page_config(page_title="MyAIHealthLine", page_icon="🏥", layout="wide")
 # Hydrate session auth from token in query params if present
 hydrate_auth_from_params()
 
+
 # ============================================================
 # GLOBAL LOGOUT BUTTON (VISIBLE ON ALL PAGES)
 # ============================================================
@@ -21,7 +22,8 @@ def render_global_logout_button():
     role_label = auth.get("role", "")
 
     # CSS for positioning the logout button at top-right
-    st.markdown("""
+    st.markdown(
+        """
         <style>
             .logout-container {
                 position: fixed;
@@ -35,7 +37,9 @@ def render_global_logout_button():
                 margin-right: 12px;
             }
         </style>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
     # HTML container with logout button
     st.markdown('<div class="logout-container">', unsafe_allow_html=True)
@@ -46,7 +50,7 @@ def render_global_logout_button():
     with col1:
         st.markdown(
             f"<div class='logout-user'>👤 {display_name} ({role_label})</div>",
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
 
     with col2:
@@ -54,7 +58,7 @@ def render_global_logout_button():
             clear_auth()
             st.rerun()
 
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 # Render logout button globally
@@ -68,11 +72,17 @@ render_global_logout_button()
 page_login = st.Page("pages/account/login.py", title="Login", icon=":material/home:")
 page_admin = st.Page("pages/admin/admin.py", title="Admin", icon=":material/home:")
 page_ai_assistant = st.Page(
-    "pages/ai/concierge_ai_assistant.py", title="Concierge AI", icon=":material/cognition_2:"
+    "pages/ai/concierge_ai_assistant.py",
+    title="Concierge AI",
+    icon=":material/cognition_2:",
 )
-page_doctor = st.Page("pages/doctor/doctor.py", title="Patient Information", icon=":material/search:")
+page_doctor = st.Page(
+    "pages/doctor/doctor.py", title="Patient Information", icon=":material/search:"
+)
 page_patient_profile = st.Page(
-    "pages/patient/patient_profile.py", title="Patient Profile", icon=":material/history:"
+    "pages/patient/patient_profile.py",
+    title="Patient Profile",
+    icon=":material/history:",
 )
 
 auth = st.session_state.get("auth")
@@ -93,12 +103,12 @@ if auth:
         }
     elif role == "doctor":
         nav_map = {
-            "Doctor": [page_doctor, page_patient_profile],
+            "Doctor": [page_patient_profile],
             "AI": [page_ai_assistant],
         }
     elif role == "admin":
         nav_map = {
-            "Admin": [page_admin, page_patient_profile, page_doctor],
+            "Admin": [page_patient_profile],
             "AI": [page_ai_assistant],
         }
     else:
