@@ -41,6 +41,20 @@ class UserPatientAccess(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     patient_id = Column(Integer, ForeignKey("patients.id"))
 
+class MedicationSchedule(Base):
+    __tablename__ = "medication_schedules"
+
+    id = Column(Integer, primary_key=True)
+    patient_id = Column(Integer, ForeignKey("patients.id"))
+    medication_name = Column(String)
+    dosage = Column(String)
+    frequency = Column(String)
+    start_date = Column(Date)
+    end_date = Column(Date)
+    intake_time = Column(String)
+    status = Column(String)  # pending, taken, missed
+    remarks = Column(Text)
+
 class Condition(Base):
     __tablename__ = "conditions"
 

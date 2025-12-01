@@ -36,6 +36,7 @@ if st.button("Retrieve"):
                 appointments = data["appointments"]
                 referrals = data["referrals"]
                 carers = data.get("carers", [])
+                medications = data.get("medications", [])
                 age = patient.get("age")
                 age_group = patient.get("age_group")
                 requires_carer = patient.get("requires_carer")
@@ -96,6 +97,22 @@ if st.button("Retrieve"):
                     for r in referrals:
                         st.write(f"- Referred to **{r['referred_to_specialization']}** → Status: {r['status']}")
                         st.caption(f"Reason: {r['reason']}")
+
+                # Medication Schedules
+                st.header("💊 Medication Schedule")
+                if len(medications) == 0:
+                    st.info("No medication schedules found.")
+                else:
+                    status_colors = {"taken": "green", "pending": "orange", "missed": "red"}
+                    for m in medications:
+                        status = m.get("status", "pending")
+                        color = status_colors.get(status, "gray")
+                        st.markdown(f"**{m['medication_name']}** — {m['dosage']} | {m['frequency']}")
+                        st.write(f"Time: {m['intake_time']} | Start: {m['start_date']} → End: {m['end_date']}")
+                        st.markdown(f"Status: <span style='color:{color}'>{status.upper()}</span>", unsafe_allow_html=True)
+                        if m.get("remarks"):
+                            st.caption(f"Remarks: {m['remarks']}")
+                        st.divider()
 
         except Exception as e:
             st.error(str(e))

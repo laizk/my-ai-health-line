@@ -69,3 +69,16 @@ CREATE TABLE notifications (
     status VARCHAR(20) DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE medication_schedules (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER REFERENCES patients(id) ON DELETE CASCADE,
+    medication_name VARCHAR(255) NOT NULL,
+    dosage VARCHAR(100),
+    frequency VARCHAR(100),
+    start_date DATE,
+    end_date DATE,
+    intake_time VARCHAR(50),
+    status VARCHAR(20) DEFAULT 'pending', -- pending, taken, missed
+    remarks TEXT
+);

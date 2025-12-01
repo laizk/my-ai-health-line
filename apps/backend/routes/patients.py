@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from sqlalchemy import select
 from database import get_db
-from models.models import Patient, Condition, Appointment, Referral, Doctor, Carer, UserAccount, UserPatientAccess
+from models.models import Patient, Condition, Appointment, Referral, Doctor, Carer, UserAccount, UserPatientAccess, MedicationSchedule
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/patients", tags=["patients"])
@@ -121,6 +121,27 @@ async def get_patient_profile(
         for c in carers
     ]
 
+    # Medication schedules
+    meds = (
+        await db.scalars(
+            select(MedicationSchedule).where(MedicationSchedule.patient_id == patient_id)
+        )
+    ).all()
+    meds_payload = [
+        {
+            "id": m.id,
+            "medication_name": m.medication_name,
+            "dosage": m.dosage,
+            "frequency": m.frequency,
+            "start_date": m.start_date,
+            "end_date": m.end_date,
+            "intake_time": m.intake_time,
+            "status": m.status,
+            "remarks": m.remarks,
+        }
+        for m in meds
+    ]
+
     # Appointments (with doctor join)
     appts_raw = (
         await db.execute(
@@ -156,4 +177,5 @@ async def get_patient_profile(
         "appointments": appointments,
         "referrals": referrals,
         "carers": carers_payload,
+        "medications": meds_payload,
     }
