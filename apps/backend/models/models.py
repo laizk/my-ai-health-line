@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date, ForeignKey, Text, TIMESTAMP
+from sqlalchemy.sql import func
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
@@ -54,6 +55,24 @@ class MedicationSchedule(Base):
     intake_time = Column(String)
     status = Column(String)  # pending, taken, missed
     remarks = Column(Text)
+
+class ConversationSession(Base):
+    __tablename__ = "conversation_sessions"
+
+    id = Column(Integer, primary_key=True)
+    session_id = Column(String, unique=True, index=True)
+    app_name = Column(String)
+    user_id = Column(String)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+
+class ConversationMessage(Base):
+    __tablename__ = "conversation_messages"
+
+    id = Column(Integer, primary_key=True)
+    session_id = Column(String, ForeignKey("conversation_sessions.session_id", ondelete="CASCADE"))
+    role = Column(String)   # user | assistant
+    content = Column(Text)
+    created_at = Column(TIMESTAMP, server_default=func.now())
 
 class Condition(Base):
     __tablename__ = "conditions"

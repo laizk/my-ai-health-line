@@ -56,12 +56,16 @@ if prompt := st.chat_input("What is up?"):
             )
             data = response.json()
 
-            response_text = (
-                data.get("response", [{}])[0]
-                        .get("content", {})
-                        .get("parts", [{}])[0]
-                        .get("text", "")
-            )
+            raw_response = data.get("response", "")
+            if isinstance(raw_response, list):
+                response_text = (
+                    raw_response[0]
+                    .get("content", {})
+                    .get("parts", [{}])[0]
+                    .get("text", "")
+                )
+            else:
+                response_text = raw_response or ""
 
             # Clear loader animation for clean typewriter text
             animated_placeholder.empty()
