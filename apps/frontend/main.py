@@ -1,49 +1,100 @@
 import streamlit as st
 import requests
-
-BACKEND_API = "http://backend:8010"
+from pathlib import Path
+from auth_utils import hydrate_auth_from_params, clear_auth
 
 st.set_page_config(page_title="MyAIHealthLine", page_icon="🏥")
 
-st.title("🏥 MyAIHealthLine Dashboard")
+# Hydrate session auth from token in query params if present
+hydrate_auth_from_params()
+
+# ============================================================
+# GLOBAL LOGOUT BUTTON (VISIBLE ON ALL PAGES)
+# ============================================================
+def render_global_logout_button():
+    auth = st.session_state.get("auth")
+    if not auth:
+        return
+
+    # CSS for positioning the logout button at top-right
+    st.markdown("""
+        <style>
+            .logout-container {
+                position: fixed;
+                top: 15px;
+                right: 20px;
+                z-index: 1000;
+                background: rgba(255, 255, 255, 0.0);
+            }
+            .logout-user {
+                font-size: 14px;
+                margin-right: 12px;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # HTML container with logout button
+    st.markdown('<div class="logout-container">', unsafe_allow_html=True)
+
+    # Show username + logout button
+    col1, col2 = st.columns([0.75, 0.25])
+
+    with col1:
+        st.markdown(
+            f"<div class='logout-user'>👤 {auth['user']['full_name']} ({auth['role']})</div>",
+            unsafe_allow_html=True
+        )
+
+    with col2:
+        if st.button("🔓 Logout"):
+            clear_auth()
+            st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+# Render logout button globally
+render_global_logout_button()
+# ============================================================
+
+
+# ============================================================
+# PAGE DEFINITIONS
+# ============================================================
+page_login = st.Page("pages/account/login.py", title="Login", icon=":material/home:")
+page_admin = st.Page("pages/admin/admin.py", title="Admin", icon=":material/home:")
+page_ai_assistant = st.Page(
+    "pages/ai/concierge_ai_assistant.py", title="Concierge AI", icon=":material/cognition_2:"
+)
+page_doctor = st.Page("pages/doctor/doctor.py", title="Patient Information", icon=":material/search:")
+page_patient_profile = st.Page(
+    "pages/patient/patient_profile.py", title="Patient Profile", icon=":material/history:"
+)
+
 auth = st.session_state.get("auth")
+app_root = Path(__file__).parent
+
+# ============================================================
+# NAVIGATION BASED ON LOGIN STATUS
+# ============================================================
 
 if auth:
-    st.success(f"Logged in as {auth['user']['full_name']} ({auth['role']}).")
-    patients = auth.get("patients", [])
-    if patients:
-        st.write("Accessible patients:")
-        for p in patients:
-            st.write(f"- {p['full_name']} (ID: {p['id']})")
-        st.page_link("pages/patient_profile.py", label="Open Patient Profile")
-    else:
-        st.warning("No patients linked to this account.")
-
-    if st.button("Logout"):
-        st.session_state.pop("auth", None)
-        st.success("Logged out.")
+    # Logged-in navigation
+    pg = st.navigation(
+        {
+            "Patient Profile": [page_patient_profile],
+            "Admin": [page_admin],
+            "Doctor": [page_doctor],
+            "AI": [page_ai_assistant],
+        }
+    )
 else:
-    st.subheader("🔐 Login")
-    role = st.selectbox("I am a", ["patient", "carer"])
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
+    # Logged-out navigation
+    pg = st.navigation(
+        {
+            "Account": [page_login],
+            "AI": [page_ai_assistant],
+        }
+    )
 
-    if st.button("Login"):
-        try:
-            resp = requests.post(
-                f"{BACKEND_API}/patients/login",
-                json={
-                    "role": role,
-                    "username": username,
-                    "password": password,
-                },
-                timeout=8,
-            )
-            if resp.status_code != 200:
-                detail = resp.json().get("detail", "Invalid credentials")
-                st.error(detail)
-            else:
-                st.session_state.auth = resp.json()
-                st.rerun()
-        except Exception as e:
-            st.error(str(e))
+pg.run()

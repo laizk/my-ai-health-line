@@ -5,8 +5,6 @@ import json
 
 BACKEND_API_URL = "http://backend:8010/ask"
 
-st.title("Patient")
-
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []

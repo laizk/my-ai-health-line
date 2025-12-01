@@ -1,10 +1,13 @@
 import streamlit as st
 import requests
+from auth_utils import hydrate_auth_from_params
 
 BACKEND_API = "http://backend:8010"
 
 st.title("🧑‍⚕️ Patient Profile")
 
+# Restore auth if the page is refreshed directly
+hydrate_auth_from_params()
 auth = st.session_state.get("auth")
 if not auth:
     st.warning("Please login from the Login page to view patient records.")
