@@ -22,22 +22,22 @@ INSERT INTO carers (patient_id, full_name, relationship_to_patient, contact_numb
 (4, 'Community Nurse', 'Visiting Nurse', '90000002', 'Covers several assigned patients'),
 (5, 'Community Nurse', 'Visiting Nurse', '90000002', 'Covers several assigned patients');
 
--- Centralized users for all roles
-INSERT INTO users (username, password, role, patient_id, doctor_id) VALUES
-('admin', 'admin123', 'admin', NULL, NULL),
-('dr_alice', 'doctor123', 'doctor', NULL, 1),
-('dr_bernard', 'doctor123', 'doctor', NULL, 2),
-('john', 'john123', 'patient', 1, NULL),
-('sarah', 'sarah123', 'patient', 2, NULL),
-('michael', 'michael123', 'patient', 3, NULL),
-('aisha', 'aisha123', 'patient', 4, NULL),
-('lucas', 'lucas123', 'patient', 5, NULL),
-('grandpa', 'grandpa123', 'patient', 6, NULL),
-('guardian', 'guardian123', 'carer', NULL, NULL),
-('joy', 'joy123', 'carer', NULL, NULL),
-('farah', 'farah123', 'carer', NULL, NULL),
-('linda', 'linda123', 'carer', NULL, NULL),
-('nurse', 'nurse123', 'carer', NULL, NULL);
+-- Centralized users for all roles (with carer_id)
+INSERT INTO users (username, password, role, patient_id, doctor_id, carer_id) VALUES
+('admin', 'admin123', 'admin', NULL, NULL, NULL),
+('dr_alice', 'doctor123', 'doctor', NULL, 1, NULL),
+('dr_bernard', 'doctor123', 'doctor', NULL, 2, NULL),
+('john', 'john123', 'patient', 1, NULL, NULL),
+('sarah', 'sarah123', 'patient', 2, NULL, NULL),
+('michael', 'michael123', 'patient', 3, NULL, NULL),
+('aisha', 'aisha123', 'patient', 4, NULL, NULL),
+('lucas', 'lucas123', 'patient', 5, NULL, NULL),
+('grandpa', 'grandpa123', 'patient', 6, NULL, NULL),
+('guardian', 'guardian123', 'carer', NULL, NULL, 4), -- Community volunteer for patients 4 & 6
+('joy', 'joy123', 'carer', NULL, NULL, 1),          -- Spouse of patient 3
+('farah', 'farah123', 'carer', NULL, NULL, 2),       -- Mother of patient 4
+('linda', 'linda123', 'carer', NULL, NULL, 3),       -- Mother of patient 5
+('nurse', 'nurse123', 'carer', NULL, NULL, 6);       -- Community nurse covering patients 4 & 5
 
 -- Map users to the patients they can access
 INSERT INTO user_patient_access (user_id, patient_id)

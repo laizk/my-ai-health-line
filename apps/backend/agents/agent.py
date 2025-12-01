@@ -7,6 +7,7 @@ from google.adk.sessions import InMemorySessionService
 from google.adk.memory import InMemoryMemoryService
 from google.adk.tools import load_memory, preload_memory
 from google.adk.tools import google_search
+from agents.tools import identify_user
 
 from utils import retry_config
 
@@ -23,15 +24,16 @@ root_agent = LlmAgent(
         retry_options=retry_config
     ),
     description="A helpful healthcare assistant.",
-    # instruction=(
-    #     "You assist patients. "
-    #     # "Use memory_write(key, value) to store important details. "
-    #     # "Use memory_read(key) to recall things the user has told you before."
-    # ),
-    instruction="You are a helpful assistant. Use Google Search for current info or if unsure.",
+    instruction=(
+        "You are a helpful assistant. Use Google Search for current info or if unsure. "
+        "Use identify_user() to determine who the user is (username/full name/role) and greet appropriately."
+        # "Use memory_write(key, value) to store important details. "
+        # "Use memory_read(key) to recall things the user has told you before."
+    ),
     
     tools=[
-        google_search,
+        # google_search,
+        identify_user,
         # memory_write,
         # memory_read
     ]

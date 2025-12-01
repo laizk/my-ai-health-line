@@ -53,7 +53,8 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     role VARCHAR(50) NOT NULL,
     patient_id INTEGER REFERENCES patients(id),
-    doctor_id INTEGER REFERENCES doctors(id)
+    doctor_id INTEGER REFERENCES doctors(id),
+    carer_id INTEGER REFERENCES carers(id)
 );
 
 CREATE TABLE user_patient_access (
@@ -98,4 +99,14 @@ CREATE TABLE conversation_messages (
     role VARCHAR(20) NOT NULL,        -- user | assistant
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE login_sessions (
+    id SERIAL PRIMARY KEY,
+    session_token VARCHAR(150) UNIQUE NOT NULL,
+    username VARCHAR(100) NOT NULL,
+    full_name VARCHAR(255),
+    role VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

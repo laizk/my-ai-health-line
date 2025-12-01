@@ -13,6 +13,7 @@ class UserAccount(Base):
     role = Column(String)  # admin, doctor, patient, carer
     patient_id = Column(Integer, ForeignKey("patients.id"))
     doctor_id = Column(Integer, ForeignKey("doctors.id"))
+    carer_id = Column(Integer, ForeignKey("carers.id"))
 
 class Patient(Base):
     __tablename__ = "patients"
@@ -73,6 +74,17 @@ class ConversationMessage(Base):
     role = Column(String)   # user | assistant
     content = Column(Text)
     created_at = Column(TIMESTAMP, server_default=func.now())
+
+class LoginSession(Base):
+    __tablename__ = "login_sessions"
+
+    id = Column(Integer, primary_key=True)
+    session_token = Column(String, unique=True, index=True)
+    username = Column(String)
+    full_name = Column(String)
+    role = Column(String)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    last_seen = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
 class Condition(Base):
     __tablename__ = "conditions"

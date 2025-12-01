@@ -1,9 +1,11 @@
+from uuid import uuid4
+
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
-from models.models import UserAccount, Patient, UserPatientAccess, Doctor
+from models.models import UserAccount, Patient, UserPatientAccess, Doctor, LoginSession
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -60,6 +62,17 @@ async def login(credentials: dict, db: AsyncSession = Depends(get_db)):
     else:
         raise HTTPException(status_code=400, detail="Unsupported role")
 
+    # Create login session token for tracking
+    session_token = str(uuid4())
+    login_row = LoginSession(
+        session_token=session_token,
+        username=user.username,
+        full_name=display_name,
+        role=role,
+    )
+    db.add(login_row)
+    await db.commit()
+
     return {
         "role": role,
         "user": {
@@ -68,4 +81,5 @@ async def login(credentials: dict, db: AsyncSession = Depends(get_db)):
             "full_name": display_name,
         },
         "patients": patients_payload,
+        "session_token": session_token,
     }

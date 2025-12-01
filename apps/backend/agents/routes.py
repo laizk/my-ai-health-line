@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from agents.agent import runner, session_service, APP_NAME, USER_ID
+from agents.user_context import update_user_context_from_db
 from database import get_db
 from models.models import ConversationSession, ConversationMessage
 from google.adk.sessions import InMemorySessionService
@@ -68,12 +69,10 @@ async def _load_history(db: AsyncSession, session_id: str) -> List[Dict[str, str
 async def _get_or_create_session(session_id: str, user_id: str):
     """Ensure a session exists in the session service."""
     try:
-        print("✅ Trying to get session:", session_id)
         return await session_service.create_session(
             app_name=APP_NAME, user_id=user_id, session_id=session_id
         )
     except Exception:
-        print("✅ Creating new session:", session_id)        
         return await session_service.get_session(
             app_name=APP_NAME, user_id=user_id, session_id=session_id
         )
@@ -81,35 +80,33 @@ async def _get_or_create_session(session_id: str, user_id: str):
 
 @router.post("/ask")
 async def ask_agent(req: AskRequest, db: AsyncSession = Depends(get_db)):
-    print('✅ Received ask request:', req)
     user_id = (req.user_name or "").strip() or USER_ID
+    await update_user_context_from_db(db, user_id)
+    session = await _get_or_create_session(session_id=req.session_id or str(uuid4()), user_id=user_id)
+    session_id = session.id
+    await _ensure_db_session(db, session_id, user_id=user_id)
 
-    session = await _get_or_create_session(session_id=req.session_id, user_id=user_id)
-    print("✅ Session obtained:", session)
-    # session_id = session.id
-    await _ensure_db_session(db, session.id, user_id=user_id)
-
-    await _append_message(db, session.id, "user", req.prompt)
+    await _append_message(db, session_id, "user", req.prompt)
 
     query_content = types.Content(role="user", parts=[types.Part(text=req.prompt)])
     assistant_text = ""
 
     async for event in runner.run_async(
         user_id=user_id,
-        session_id=session.id,
+        session_id=session_id,
         new_message=query_content
     ):
         if event.is_final_response() and event.content and event.content.parts:
             assistant_text = event.content.parts[0].text or ""
 
     if assistant_text:
-        await _append_message(db, session.id, "assistant", assistant_text)
+        await _append_message(db, session_id, "assistant", assistant_text)
 
-    history = await _load_history(db, session.id)
+    history = await _load_history(db, session_id)
 
     return {
         "response": assistant_text,
-        "session_id": session.id,
+        "session_id": session_id,
         "history": history,
     }
 
