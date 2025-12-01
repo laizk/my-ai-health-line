@@ -27,15 +27,14 @@ root_agent = LlmAgent(
     instruction=(
         "You are a helpful assistant. Use Google Search for current info or if unsure. "
         "Use identify_user() to determine who the user is (username/full name/role) and greet appropriately."
-        # "Use memory_write(key, value) to store important details. "
-        # "Use memory_read(key) to recall things the user has told you before."
+        "When user says hello, use identify_user() to determine the full name and greet them personally."
     ),
     
     tools=[
         # google_search,
         identify_user,
-        # memory_write,
-        # memory_read
+        load_memory,
+        preload_memory,
     ]
 )
 print("✅ Agent created")
@@ -51,6 +50,6 @@ runner = Runner(
     agent=root_agent,
     app_name=APP_NAME,
     session_service=session_service,
-    memory_service=memory_service,  # Memory service is now available!
+    memory_service=memory_service,
 )
 print("✅ Agent and Runner created with memory support!")

@@ -7,7 +7,7 @@ from google.genai import types
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from agents.agent import runner, session_service, APP_NAME, USER_ID
+from agents.agent import runner, session_service, memory_service, APP_NAME, USER_ID
 from agents.user_context import update_user_context_from_db
 from database import get_db
 from models.models import ConversationSession, ConversationMessage
@@ -82,8 +82,16 @@ async def _get_or_create_session(session_id: str, user_id: str):
 async def ask_agent(req: AskRequest, db: AsyncSession = Depends(get_db)):
     user_id = (req.user_name or "").strip() or USER_ID
     await update_user_context_from_db(db, user_id)
-    session = await _get_or_create_session(session_id=req.session_id or str(uuid4()), user_id=user_id)
-    session_id = session.id
+    session_id = req.session_id
+    if not session_id:
+        session_id = await _get_latest_session_id(db, user_id) or str(uuid4())
+
+    session = await _get_or_create_session(session_id=session_id, user_id=user_id)
+    await memory_service.add_session_to_memory(session)
+
+    print("✅ Session added to memory!")
+
+    session_id = session.id  # ensure we use runner session id
     await _ensure_db_session(db, session_id, user_id=user_id)
 
     await _append_message(db, session_id, "user", req.prompt)
