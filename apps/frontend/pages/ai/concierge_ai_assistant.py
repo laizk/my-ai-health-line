@@ -2,59 +2,105 @@ import streamlit as st
 import requests
 import time
 import json
-from config import ASK_API
 
-# -------------------------------
-# Typing animation function
-# -------------------------------
+from config import ASK_API, ASK_HISTORY_API
+from auth_utils import hydrate_auth_from_params
+
+# Restore auth
+hydrate_auth_from_params()
+auth = st.session_state.get("auth")
+
+# Track per-user session IDs to reload history after logout/login
+if "user_sessions" not in st.session_state:
+    st.session_state.user_sessions = {}
+
+current_user = "guest_user"
+if auth:
+    user_info = auth.get("user", {})
+    current_user = user_info.get("username") or user_info.get("full_name") or "guest_user"
+
+# When user changes, swap to their last session if exists; otherwise start fresh.
+if st.session_state.get("last_user") != current_user:
+    st.session_state.session_id = st.session_state.user_sessions.get(current_user)
+    st.session_state.messages = []
+    st.session_state.last_user = current_user
+
+st.title("Concierge AI Assistant")
+if not auth:
+    st.info("You are chatting as a guest. Please login from the Login page for a personalized experience, but you can continue chatting.")
+
+
 def type_writer(text, container, speed=0.02):
+    """Simple typewriter effect for assistant responses."""
     typed = ""
     for char in text:
         typed += char
         container.markdown(typed)
         time.sleep(speed)
 
-# -------------------------------
-# Initialize chat history
-# -------------------------------
+
+# Initialize chat history and session tracking
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "session_id" not in st.session_state:
+    st.session_state.session_id = None
 
-st.title("Concierge AI Assistant")
 
-# Render all previous messages from history **first**
+def load_history():
+    if not st.session_state.session_id:
+        return
+    try:
+        resp = requests.get(
+            ASK_HISTORY_API,
+            params={"session_id": st.session_state.session_id},
+            timeout=6,
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            st.session_state.messages = data.get("history", [])
+    except Exception:
+        pass
+
+
+# Load history for current session (if any) before rendering
+if st.session_state.session_id:
+    load_history()
+
+# Render existing history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# -------------------------------
-# Handle user input
-# -------------------------------
-if prompt := st.chat_input("What is up?"):
 
-    # --- 1. Add + display user message ---
+if prompt := st.chat_input("Chat with the Concierge AI Assistant..."):
+    # Show user message
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     try:
-        # --- 2. Create a placeholder for animated assistant message ---
         with st.chat_message("assistant"):
             animated_placeholder = st.empty()
-
-            # Loader animation
             for i in range(6):
                 dots = "." * ((i % 3) + 1)
                 animated_placeholder.markdown(f"⏳ *Thinking{dots}*")
                 time.sleep(0.3)
 
-            # Backend call
+            user_name = current_user
+
             response = requests.post(
                 ASK_API,
-                json={"prompt": prompt},
-                timeout=12
+                json={
+                    "prompt": prompt,
+                    "session_id": st.session_state.session_id,
+                    "user_name": user_name,
+                },
+                timeout=12,
             )
             data = response.json()
+            st.session_state.session_id = data.get("session_id", st.session_state.session_id)
+            if st.session_state.session_id:
+                st.session_state.user_sessions[current_user] = st.session_state.session_id
 
             raw_response = data.get("response", "")
             if isinstance(raw_response, list):
@@ -67,18 +113,14 @@ if prompt := st.chat_input("What is up?"):
             else:
                 response_text = raw_response or ""
 
-            # Clear loader animation for clean typewriter text
             animated_placeholder.empty()
-
-            # Typewriter effect ONLY on this placeholder
             type_writer(response_text, animated_placeholder)
 
-        # --- 3. SAVE the assistant message into chat history ---
-        st.session_state.messages.append({"role": "assistant", "content": response_text})
-
-        # --- IMPORTANT FIX ---
-        # Immediately rerun so chatting starts fresh without keeping animation output
-        st.rerun()
+        backend_history = data.get("history")
+        if backend_history:
+            st.session_state.messages = backend_history
+        else:
+            st.session_state.messages.append({"role": "assistant", "content": response_text})
 
     except Exception as e:
         st.error("Request failed.")

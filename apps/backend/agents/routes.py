@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from agents.agent import runner, session_service, APP_NAME, USER_ID
 from database import get_db
 from models.models import ConversationSession, ConversationMessage
+from google.adk.sessions import InMemorySessionService
 
 router = APIRouter()
 
@@ -17,9 +18,10 @@ router = APIRouter()
 class AskRequest(BaseModel):
     prompt: str
     session_id: Optional[str] = None
+    user_name: Optional[str] = None
 
 
-async def _ensure_db_session(db: AsyncSession, session_id: str):
+async def _ensure_db_session(db: AsyncSession, session_id: str, user_id: str):
     session_row = await db.scalar(
         select(ConversationSession).where(ConversationSession.session_id == session_id)
     )
@@ -29,7 +31,7 @@ async def _ensure_db_session(db: AsyncSession, session_id: str):
     session_row = ConversationSession(
         session_id=session_id,
         app_name=APP_NAME,
-        user_id=USER_ID,
+        user_id=user_id,
     )
     db.add(session_row)
     await db.commit()
@@ -37,10 +39,10 @@ async def _ensure_db_session(db: AsyncSession, session_id: str):
     return session_row
 
 
-async def _get_latest_session_id(db: AsyncSession) -> Optional[str]:
+async def _get_latest_session_id(db: AsyncSession, user_id: str) -> Optional[str]:
     row = await db.scalar(
         select(ConversationSession.session_id)
-        .where(ConversationSession.app_name == APP_NAME, ConversationSession.user_id == USER_ID)
+        .where(ConversationSession.app_name == APP_NAME, ConversationSession.user_id == user_id)
         .order_by(ConversationSession.created_at.desc())
     )
     return row
@@ -63,37 +65,37 @@ async def _load_history(db: AsyncSession, session_id: str) -> List[Dict[str, str
     return [{"role": r.role, "content": r.content, "timestamp": r.created_at.isoformat() if r.created_at else None} for r in rows]
 
 
-async def _get_or_create_session(session_id: str):
+async def _get_or_create_session(session_id: str, user_id: str):
     """Ensure a session exists in the session service."""
     try:
+        print("✅ Trying to get session:", session_id)
         return await session_service.create_session(
-            app_name=APP_NAME, user_id=USER_ID, session_id=session_id
+            app_name=APP_NAME, user_id=user_id, session_id=session_id
         )
     except Exception:
+        print("✅ Creating new session:", session_id)        
         return await session_service.get_session(
-            app_name=APP_NAME, user_id=USER_ID, session_id=session_id
+            app_name=APP_NAME, user_id=user_id, session_id=session_id
         )
 
 
 @router.post("/ask")
 async def ask_agent(req: AskRequest, db: AsyncSession = Depends(get_db)):
-    session_id = req.session_id
-    if not session_id:
-        # Reuse latest session for this app/user if available
-        session_id = await _get_latest_session_id(db)
-    if not session_id:
-        session_id = str(uuid4())
+    print('✅ Received ask request:', req)
+    user_id = (req.user_name or "").strip() or USER_ID
 
-    session = await _get_or_create_session(session_id)
-    await _ensure_db_session(db, session_id)
+    session = await _get_or_create_session(session_id=req.session_id, user_id=user_id)
+    print("✅ Session obtained:", session)
+    # session_id = session.id
+    await _ensure_db_session(db, session.id, user_id=user_id)
 
-    await _append_message(db, session_id, "user", req.prompt)
+    await _append_message(db, session.id, "user", req.prompt)
 
     query_content = types.Content(role="user", parts=[types.Part(text=req.prompt)])
     assistant_text = ""
 
     async for event in runner.run_async(
-        user_id=USER_ID,
+        user_id=user_id,
         session_id=session.id,
         new_message=query_content
     ):
@@ -101,13 +103,13 @@ async def ask_agent(req: AskRequest, db: AsyncSession = Depends(get_db)):
             assistant_text = event.content.parts[0].text or ""
 
     if assistant_text:
-        await _append_message(db, session_id, "assistant", assistant_text)
+        await _append_message(db, session.id, "assistant", assistant_text)
 
-    history = await _load_history(db, session_id)
+    history = await _load_history(db, session.id)
 
     return {
         "response": assistant_text,
-        "session_id": session_id,
+        "session_id": session.id,
         "history": history,
     }
 

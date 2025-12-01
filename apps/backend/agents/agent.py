@@ -14,7 +14,7 @@ from utils import retry_config
 
 API_KEY = os.getenv("GOOGLE_API_KEY")
 APP_NAME = "Base Agent"
-USER_ID = "demo_user"
+USER_ID = "guest_user"
 
 root_agent = LlmAgent(
     name="helpful_assistant",
