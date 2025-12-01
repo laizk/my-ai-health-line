@@ -3,25 +3,20 @@ import requests
 import time
 import json
 
-from config import ASK_API, ASK_HISTORY_API
+from config import ASK_API, ASK_HISTORY_BY_USER_API
 from auth_utils import hydrate_auth_from_params
 
 # Restore auth
 hydrate_auth_from_params()
 auth = st.session_state.get("auth")
 
-# Track per-user session IDs to reload history after logout/login
-if "user_sessions" not in st.session_state:
-    st.session_state.user_sessions = {}
-
 current_user = "guest_user"
 if auth:
     user_info = auth.get("user", {})
     current_user = user_info.get("username") or user_info.get("full_name") or "guest_user"
 
-# When user changes, swap to their last session if exists; otherwise start fresh.
+# When user changes, reset local cache (history reloads by user)
 if st.session_state.get("last_user") != current_user:
-    st.session_state.session_id = st.session_state.user_sessions.get(current_user)
     st.session_state.messages = []
     st.session_state.last_user = current_user
 
@@ -39,20 +34,17 @@ def type_writer(text, container, speed=0.02):
         time.sleep(speed)
 
 
-# Initialize chat history and session tracking
+# Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
-if "session_id" not in st.session_state:
-    st.session_state.session_id = None
 
 
 def load_history():
-    if not st.session_state.session_id:
-        return
+    """Load history by user_id (single thread)."""
     try:
         resp = requests.get(
-            ASK_HISTORY_API,
-            params={"session_id": st.session_state.session_id},
+            ASK_HISTORY_BY_USER_API,
+            params={"user_id": current_user},
             timeout=6,
         )
         if resp.status_code == 200:
@@ -62,9 +54,8 @@ def load_history():
         pass
 
 
-# Load history for current session (if any) before rendering
-if st.session_state.session_id:
-    load_history()
+# Load history for current user
+load_history()
 
 # Render existing history
 for message in st.session_state.messages:
@@ -92,15 +83,11 @@ if prompt := st.chat_input("Chat with the Concierge AI Assistant..."):
                 ASK_API,
                 json={
                     "prompt": prompt,
-                    "session_id": st.session_state.session_id,
                     "user_name": user_name,
                 },
                 timeout=12,
             )
             data = response.json()
-            st.session_state.session_id = data.get("session_id", st.session_state.session_id)
-            if st.session_state.session_id:
-                st.session_state.user_sessions[current_user] = st.session_state.session_id
 
             raw_response = data.get("response", "")
             if isinstance(raw_response, list):

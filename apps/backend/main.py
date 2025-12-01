@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from agents.routes import router as agent_router
+from routes.ai_history import router as ai_history_router
 from routes.patients import router as patient_router
 from routes.auth import router as auth_router
 from config import settings
@@ -28,5 +29,6 @@ def debug_env():
 
 # 👉 Register routes
 app.include_router(agent_router)          # /ask
+app.include_router(ai_history_router)     # /ask/history/*
 app.include_router(patient_router)        # /patients/*
 app.include_router(auth_router)           # /auth/*
