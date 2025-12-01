@@ -11,9 +11,7 @@ CREATE TABLE patients (
     gender VARCHAR(10),
     contact_number VARCHAR(50),
     address TEXT,
-    emergency_contact TEXT,
-    login_username VARCHAR(100),
-    login_password VARCHAR(255)
+    emergency_contact TEXT
 );
 
 CREATE TABLE carers (
@@ -22,9 +20,7 @@ CREATE TABLE carers (
     full_name VARCHAR(255) NOT NULL,
     relationship_to_patient VARCHAR(100),
     contact_number VARCHAR(50),
-    notes TEXT,
-    login_username VARCHAR(100),
-    login_password VARCHAR(255)
+    notes TEXT
 );
 
 CREATE TABLE conditions (
@@ -49,6 +45,21 @@ CREATE TABLE referrals (
     referred_to_specialization VARCHAR(255),
     reason TEXT,
     status VARCHAR(50)
+);
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    patient_id INTEGER REFERENCES patients(id),
+    doctor_id INTEGER REFERENCES doctors(id)
+);
+
+CREATE TABLE user_patient_access (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    patient_id INTEGER REFERENCES patients(id) ON DELETE CASCADE
 );
 
 CREATE TABLE notifications (

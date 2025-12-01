@@ -16,6 +16,10 @@ def render_global_logout_button():
     if not auth:
         return
 
+    user_info = auth.get("user", {})
+    display_name = user_info.get("full_name") or user_info.get("username") or "User"
+    role_label = auth.get("role", "")
+
     # CSS for positioning the logout button at top-right
     st.markdown("""
         <style>
@@ -41,7 +45,7 @@ def render_global_logout_button():
 
     with col1:
         st.markdown(
-            f"<div class='logout-user'>👤 {auth['user']['full_name']} ({auth['role']})</div>",
+            f"<div class='logout-user'>👤 {display_name} ({role_label})</div>",
             unsafe_allow_html=True
         )
 
@@ -80,14 +84,30 @@ app_root = Path(__file__).parent
 
 if auth:
     # Logged-in navigation
-    pg = st.navigation(
-        {
-            "Patient Profile": [page_patient_profile],
-            "Admin": [page_admin],
-            "Doctor": [page_doctor],
+    role = auth.get("role")
+    nav_map = {}
+    if role in {"patient", "carer"}:
+        nav_map = {
+            "Account": [page_patient_profile],
             "AI": [page_ai_assistant],
         }
-    )
+    elif role == "doctor":
+        nav_map = {
+            "Doctor": [page_doctor, page_patient_profile],
+            "AI": [page_ai_assistant],
+        }
+    elif role == "admin":
+        nav_map = {
+            "Admin": [page_admin, page_patient_profile, page_doctor],
+            "AI": [page_ai_assistant],
+        }
+    else:
+        nav_map = {
+            "Account": [page_login],
+            "AI": [page_ai_assistant],
+        }
+
+    pg = st.navigation(nav_map)
 else:
     # Logged-out navigation
     pg = st.navigation(

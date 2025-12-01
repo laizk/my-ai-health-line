@@ -5,22 +5,62 @@ INSERT INTO doctors (full_name, specialization) VALUES
 ('Dr. Daniel Ng', 'Orthopedics'),
 ('Dr. Evelyn Chua', 'Dermatology');
 
-INSERT INTO patients (full_name, birthdate, gender, contact_number, address, emergency_contact, login_username, login_password) VALUES
-('John Lim', '1985-02-14', 'Male', '91234567', 'Bedok, Singapore', 'Maria Lim - 98765432', 'john', 'john123'),
-('Sarah Tan', '1991-10-03', 'Female', '98761234', 'Tampines, Singapore', 'Henry Tan - 92342342', 'sarah', 'sarah123'),
-('Michael Ong', '1972-05-19', 'Male', '90012345', 'Pasir Ris, Singapore', 'Joy Ong - 88992233', 'michael', 'michael123'),
-('Aisha Rahman', '2005-08-12', 'Female', '95671234', 'Sengkang, Singapore', 'Farah Rahman - 93453453', 'aisha', 'aisha123'),
-('Lucas Wong', '2018-03-21', 'Male', '99887766', 'Yishun, Singapore', 'Linda Wong - 93334444', 'lucas', 'lucas123'),
-('Grandpa Tan', '1950-07-02', 'Male', '95551111', 'Hougang, Singapore', 'Sarah Tan - 98761234', 'grandpa', 'grandpa123');
+INSERT INTO patients (full_name, birthdate, gender, contact_number, address, emergency_contact) VALUES
+('John Lim', '1985-02-14', 'Male', '91234567', 'Bedok, Singapore', 'Maria Lim - 98765432'),
+('Sarah Tan', '1991-10-03', 'Female', '98761234', 'Tampines, Singapore', 'Henry Tan - 92342342'),
+('Michael Ong', '1972-05-19', 'Male', '90012345', 'Pasir Ris, Singapore', 'Joy Ong - 88992233'),
+('Aisha Rahman', '2005-08-12', 'Female', '95671234', 'Sengkang, Singapore', 'Farah Rahman - 93453453'),
+('Lucas Wong', '2018-03-21', 'Male', '99887766', 'Yishun, Singapore', 'Linda Wong - 93334444'),
+('Grandpa Tan', '1950-07-02', 'Male', '95551111', 'Hougang, Singapore', 'Sarah Tan - 98761234');
 
-INSERT INTO carers (patient_id, full_name, relationship_to_patient, contact_number, notes, login_username, login_password) VALUES
-(3, 'Joy Ong', 'Spouse / Primary Carer', '88992233', 'Supports daily glucose monitoring', 'joy', 'joy123'),
-(4, 'Farah Rahman', 'Mother / Legal Guardian', '93453453', 'Required for consent and follow-ups', 'farah', 'farah123'),
-(5, 'Linda Wong', 'Mother', '93334444', 'Handles clinic visits and medication pickups', 'linda', 'linda123'),
-(4, 'Guardian Team', 'Community Volunteer', '90000001', 'Shared account for minors when parents unavailable', 'guardian', 'guardian123'),
-(6, 'Sarah Tan', 'Daughter / Carer', '98761234', 'Primary contact for elderly care', 'guardian', 'guardian123'),
-(4, 'Community Nurse', 'Visiting Nurse', '90000002', 'Covers several assigned patients', 'nurse', 'nurse123'),
-(5, 'Community Nurse', 'Visiting Nurse', '90000002', 'Covers several assigned patients', 'nurse', 'nurse123');
+INSERT INTO carers (patient_id, full_name, relationship_to_patient, contact_number, notes) VALUES
+(3, 'Joy Ong', 'Spouse / Primary Carer', '88992233', 'Supports daily glucose monitoring'),
+(4, 'Farah Rahman', 'Mother / Legal Guardian', '93453453', 'Required for consent and follow-ups'),
+(5, 'Linda Wong', 'Mother', '93334444', 'Handles clinic visits and medication pickups'),
+(4, 'Guardian Team', 'Community Volunteer', '90000001', 'Shared account for minors when parents unavailable'),
+(6, 'Sarah Tan', 'Daughter / Carer', '98761234', 'Primary contact for elderly care'),
+(4, 'Community Nurse', 'Visiting Nurse', '90000002', 'Covers several assigned patients'),
+(5, 'Community Nurse', 'Visiting Nurse', '90000002', 'Covers several assigned patients');
+
+-- Centralized users for all roles
+INSERT INTO users (username, password, role, patient_id, doctor_id) VALUES
+('admin', 'admin123', 'admin', NULL, NULL),
+('dr_alice', 'doctor123', 'doctor', NULL, 1),
+('dr_bernard', 'doctor123', 'doctor', NULL, 2),
+('john', 'john123', 'patient', 1, NULL),
+('sarah', 'sarah123', 'patient', 2, NULL),
+('michael', 'michael123', 'patient', 3, NULL),
+('aisha', 'aisha123', 'patient', 4, NULL),
+('lucas', 'lucas123', 'patient', 5, NULL),
+('grandpa', 'grandpa123', 'patient', 6, NULL),
+('guardian', 'guardian123', 'carer', NULL, NULL),
+('joy', 'joy123', 'carer', NULL, NULL),
+('farah', 'farah123', 'carer', NULL, NULL),
+('linda', 'linda123', 'carer', NULL, NULL),
+('nurse', 'nurse123', 'carer', NULL, NULL);
+
+-- Map users to the patients they can access
+INSERT INTO user_patient_access (user_id, patient_id)
+SELECT users.id, patients.id FROM users JOIN patients ON 1=0;
+
+-- Patients map to themselves
+INSERT INTO user_patient_access (user_id, patient_id) VALUES
+((SELECT id FROM users WHERE username='john'), 1),
+((SELECT id FROM users WHERE username='sarah'), 2),
+((SELECT id FROM users WHERE username='michael'), 3),
+((SELECT id FROM users WHERE username='aisha'), 4),
+((SELECT id FROM users WHERE username='lucas'), 5),
+((SELECT id FROM users WHERE username='grandpa'), 6);
+
+-- Carers mapped to their patients
+INSERT INTO user_patient_access (user_id, patient_id) VALUES
+((SELECT id FROM users WHERE username='joy'), 3),
+((SELECT id FROM users WHERE username='farah'), 4),
+((SELECT id FROM users WHERE username='linda'), 5),
+((SELECT id FROM users WHERE username='guardian'), 4),
+((SELECT id FROM users WHERE username='guardian'), 6),
+((SELECT id FROM users WHERE username='nurse'), 4),
+((SELECT id FROM users WHERE username='nurse'), 5);
 
 INSERT INTO conditions (patient_id, condition_name, severity_level, diagnosed_date) VALUES
 (1, 'High Blood Pressure', 'Moderate', '2021-06-10'),

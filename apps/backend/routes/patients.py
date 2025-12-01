@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from sqlalchemy import select
 from database import get_db
-from models.models import Patient, Condition, Appointment, Referral, Doctor, Carer
+from models.models import Patient, Condition, Appointment, Referral, Doctor, Carer, UserAccount, UserPatientAccess
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/patients", tags=["patients"])
@@ -29,7 +29,6 @@ def _calculate_age_group(birthdate: date | None):
 
 
 class LoginRequest(BaseModel):
-    role: str
     username: str
     password: str
 
@@ -39,58 +38,35 @@ async def login_user(
     credentials: LoginRequest,
     db: AsyncSession = Depends(get_db)
 ):
-    role = credentials.role.lower()
-
-    if role not in {"patient", "carer"}:
-        raise HTTPException(status_code=400, detail="role must be 'patient' or 'carer'")
-
-    if role == "patient":
-        patient = await db.scalar(
-            select(Patient).where(
-                Patient.login_username == credentials.username,
-                Patient.login_password == credentials.password,
-            )
+    user = await db.scalar(
+        select(UserAccount).where(
+            UserAccount.username == credentials.username,
+            UserAccount.password == credentials.password,
         )
-        if not patient:
-            raise HTTPException(status_code=401, detail="Invalid patient credentials")
+    )
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
-        return {
-            "role": "patient",
-            "user": {"id": patient.id, "full_name": patient.full_name},
-            "patients": [{"id": patient.id, "full_name": patient.full_name}],
-        }
+    role = (user.role or "").lower()
 
-    # Carer
-    carers = (
+    access_rows = (
         await db.scalars(
-            select(Carer).where(
-                Carer.login_username == credentials.username,
-                Carer.login_password == credentials.password,
-            )
+            select(UserPatientAccess.patient_id).where(UserPatientAccess.user_id == user.id)
         )
     ).all()
+    patient_ids = list(set(access_rows))
+    if not patient_ids and user.patient_id:
+        patient_ids = [user.patient_id]
 
-    if not carers:
-        raise HTTPException(status_code=401, detail="Invalid carer credentials")
-
-    patient_ids = {c.patient_id for c in carers if c.patient_id}
     patient_rows = (
-        await db.scalars(
-            select(Patient).where(Patient.id.in_(patient_ids))
-        )
+        await db.scalars(select(Patient).where(Patient.id.in_(patient_ids)))
     ).all() if patient_ids else []
 
-    patients_payload = [
-        {"id": p.id, "full_name": p.full_name}
-        for p in patient_rows
-    ]
+    patients_payload = [{"id": p.id, "full_name": p.full_name} for p in patient_rows]
 
     return {
-        "role": "carer",
-        "user": {
-            "id": carers[0].id,
-            "full_name": carers[0].full_name,
-        },
+        "role": role,
+        "user": {"id": user.id, "username": user.username, "full_name": user.username},
         "patients": patients_payload,
     }
 

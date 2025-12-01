@@ -3,6 +3,16 @@ from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
 
+class UserAccount(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String, unique=True, index=True)
+    password = Column(String)
+    role = Column(String)  # admin, doctor, patient, carer
+    patient_id = Column(Integer, ForeignKey("patients.id"))
+    doctor_id = Column(Integer, ForeignKey("doctors.id"))
+
 class Patient(Base):
     __tablename__ = "patients"
 
@@ -13,8 +23,6 @@ class Patient(Base):
     contact_number = Column(String)
     address = Column(Text)
     emergency_contact = Column(Text)
-    login_username = Column(String)
-    login_password = Column(String)
 
 class Carer(Base):
     __tablename__ = "carers"
@@ -25,8 +33,13 @@ class Carer(Base):
     relationship_to_patient = Column(String)
     contact_number = Column(String)
     notes = Column(Text)
-    login_username = Column(String)
-    login_password = Column(String)
+
+class UserPatientAccess(Base):
+    __tablename__ = "user_patient_access"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    patient_id = Column(Integer, ForeignKey("patients.id"))
 
 class Condition(Base):
     __tablename__ = "conditions"

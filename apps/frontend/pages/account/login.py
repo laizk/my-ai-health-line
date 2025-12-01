@@ -15,16 +15,15 @@ if auth:
         st.rerun()
 else:
     st.subheader("🔐 Login")
-    role = st.selectbox("I am a", ["patient", "carer"])
+    role = st.selectbox("I am a", ["patient", "carer", "doctor", "admin"])
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
     if st.button("Log In"):
         BACKEND_API = "http://backend:8010"
         try:
             resp = requests.post(
-                f"{BACKEND_API}/patients/login",
+                f"{BACKEND_API}/auth/login",
                 json={
-                    "role": role,
                     "username": username,
                     "password": password,
                 },
