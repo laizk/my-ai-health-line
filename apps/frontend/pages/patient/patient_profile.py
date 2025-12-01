@@ -1,8 +1,7 @@
 import streamlit as st
 import requests
 from auth_utils import hydrate_auth_from_params
-
-BACKEND_API = "http://backend:8010"
+from config import PATIENTS_API
 
 st.title("🧑‍⚕️ Patient Profile")
 
@@ -25,7 +24,7 @@ patient_id = patient_map[patient_label]
 if st.button("Retrieve"):
     with st.spinner("Fetching patient data..."):
         try:
-            response = requests.get(f"{BACKEND_API}/patients/{patient_id}", timeout=5)
+            response = requests.get(f"{PATIENTS_API}/{patient_id}", timeout=5)
             if response.status_code != 200:
                 st.error(response.json().get("detail", "Error fetching patient"))
             else:

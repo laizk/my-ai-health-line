@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 from auth_utils import persist_auth, hydrate_auth_from_params, clear_auth
+from config import AUTH_LOGIN_API
 
 st.title("🏥 My AI Health Line")
 
@@ -19,10 +20,9 @@ else:
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
     if st.button("Log In"):
-        BACKEND_API = "http://backend:8010"
         try:
             resp = requests.post(
-                f"{BACKEND_API}/auth/login",
+                AUTH_LOGIN_API,
                 json={
                     "username": username,
                     "password": password,

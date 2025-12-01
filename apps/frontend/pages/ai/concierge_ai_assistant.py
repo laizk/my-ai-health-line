@@ -2,8 +2,7 @@ import streamlit as st
 import requests
 import time
 import json
-
-BACKEND_API_URL = "http://backend:8010/ask"
+from config import ASK_API
 
 # -------------------------------
 # Typing animation function
@@ -51,7 +50,7 @@ if prompt := st.chat_input("What is up?"):
 
             # Backend call
             response = requests.post(
-                BACKEND_API_URL,
+                ASK_API,
                 json={"prompt": prompt},
                 timeout=12
             )
