@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.models import UserAccount, Patient, Doctor, Carer
-from agents.tools import set_current_user
+from agents.tools.account_tools import set_current_user
 
 
 async def update_user_context_from_db(db: AsyncSession, username: Optional[str]) -> None:

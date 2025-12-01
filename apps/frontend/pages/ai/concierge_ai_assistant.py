@@ -85,7 +85,7 @@ if prompt := st.chat_input("Chat with the Concierge AI Assistant..."):
                     "prompt": prompt,
                     "user_name": user_name,
                 },
-                timeout=12,
+                timeout=60,  # increased to allow slower backend responses
             )
             data = response.json()
 
@@ -109,6 +109,7 @@ if prompt := st.chat_input("Chat with the Concierge AI Assistant..."):
         else:
             st.session_state.messages.append({"role": "assistant", "content": response_text})
 
+    except requests.exceptions.Timeout:
+        st.error("Request timed out. Please try again.")
     except Exception as e:
-        st.error("Request failed.")
-        st.exception(e)
+        st.error(f"Request failed: {e}")
