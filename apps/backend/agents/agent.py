@@ -15,7 +15,7 @@ API_KEY = os.getenv("GOOGLE_API_KEY")
 APP_NAME = "Base Agent"
 USER_ID = "guest_user"
 
-root_agent = LlmAgent(
+conciergeAgent = LlmAgent(
     name="helpful_assistant",
     model=Gemini(
         model="gemini-2.5-flash",
@@ -63,9 +63,9 @@ root_agent = LlmAgent(
     
     tools=[
         # google_search,
-        identify_user,
         load_memory,
         preload_memory,
+        identify_user,        
     ]
 )
 
@@ -77,7 +77,7 @@ memory_service =  InMemoryMemoryService()
 
 # Create runner with BOTH services
 runner = Runner(
-    agent=root_agent,
+    agent=conciergeAgent,
     app_name=APP_NAME,
     session_service=session_service,
     memory_service=memory_service,
