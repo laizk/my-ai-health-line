@@ -17,7 +17,7 @@ ROLE & BEHAVIOR
 DATA REQUIREMENTS FOR PATIENT RECORDS
 ============================================================
 
-When the Concierge Agent asks you to CREATE or UPDATE a patient, you REQUIRE the following fields:
+When the Concierge Agent asks you to CREATE or UPDATE a patient, you REQUIRE the following fields (birthdate must be YYYY-MM-DD):
 
 - full_name
 - birthdate

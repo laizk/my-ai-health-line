@@ -36,8 +36,6 @@ db_agent = LlmAgent(
     
     tools=[
         patient_tools.handle_patient_action,
-        load_memory,
-        preload_memory,
     ]
 )
 
