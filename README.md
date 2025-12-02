@@ -106,6 +106,14 @@ docker compose up --build
 - FastAPI docs: http://localhost:8010/docs
 5) (Optional) Re-seed DB: drop the Postgres volume and restart compose to apply init SQL under `apps/storage/initdb/`.
 
+### Sample `.env` (create at repo root)
+```
+GOOGLE_API_KEY=your_google_api_key_here
+POSTGRES_DB_ADMIN_USER=postgres
+POSTGRES_DB_ADMIN_PASSWORD=adminpassword
+POSTGRES_DB=myaihealthline
+```
+
 ## 📱 Features for Low-Resource Communities
 
 - SMS fallback for reminders and queue updates  
