@@ -48,7 +48,7 @@ You support ONLY the following:
 
 2. **READ PATIENT**
     Action: read_patient  
-    Required: username OR patient_id
+    Required: patient_id OR (full_name + birthdate in YYYY-MM-DD)
 
 3. **UPDATE PATIENT**
     Action: update_patient  
@@ -58,6 +58,22 @@ You support ONLY the following:
 4. **DELETE PATIENT**
     Action: delete_patient  
     Required: patient_id
+
+5. **CREATE CARER**
+    Action: create_carer  
+    Required fields: patient_id, full_name, relationship_to_patient, contact_number (notes optional)
+
+6. **READ CARER**
+    Action: read_carer  
+    Required: carer_id
+
+7. **UPDATE CARER**
+    Action: update_carer  
+    Required: carer_id and any subset of carer fields
+
+8. **DELETE CARER**
+    Action: delete_carer  
+    Required: carer_id
 
 ============================================================
 RESPONSE FORMAT

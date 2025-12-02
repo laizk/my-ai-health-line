@@ -50,10 +50,22 @@ async def handle_patient_action(action: str, payload: Dict[str, Any]) -> Dict[st
 
         if action == "read_patient":
             patient_id = payload.get("patient_id")
-            if not patient_id:
-                return {"status": "missing_fields", "missing": ["patient_id"], "message": "patient_id is required"}
-            p = await svc.get(patient_id)
-            return {"status": "success", "action": action, "data": _to_dict(p)}
+            full_name = payload.get("full_name")
+            bdate = payload.get("birthdate")
+            if patient_id:
+                p = await svc.get(patient_id)
+                return {"status": "success", "action": action, "data": _to_dict(p)}
+            if full_name and bdate:
+                rows = await svc.list()
+                for p in rows:
+                    if p.full_name == full_name and p.birthdate == bdate:
+                        return {"status": "success", "action": action, "data": _to_dict(p)}
+                return {"status": "error", "message": "Patient not found with provided full_name and birthdate"}
+            return {
+                "status": "missing_fields",
+                "missing": ["patient_id or full_name+birthdate"],
+                "message": "Provide patient_id or full_name + birthdate (YYYY-MM-DD)",
+            }
 
         if action == "update_patient":
             patient_id = payload.get("patient_id")
