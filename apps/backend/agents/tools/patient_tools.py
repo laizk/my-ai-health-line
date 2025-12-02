@@ -1,4 +1,5 @@
 from typing import Any, Dict
+from datetime import date
 
 from database import AsyncSessionLocal
 from services.patient_service import PatientService
@@ -29,6 +30,13 @@ async def handle_patient_action(action: str, payload: Dict[str, Any]) -> Dict[st
     """Async dispatcher for patient CRUD actions (to be used as an async FunctionTool)."""
     action = (action or "").lower()
     payload = payload or {}
+
+    # normalize birthdate if provided as string
+    if payload.get("birthdate") and isinstance(payload["birthdate"], str):
+        try:
+            payload["birthdate"] = date.fromisoformat(payload["birthdate"])
+        except ValueError:
+            return {"status": "error", "message": "birthdate must be YYYY-MM-DD"}
 
     async with AsyncSessionLocal() as db:
         svc = PatientService(db)

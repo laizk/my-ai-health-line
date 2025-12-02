@@ -21,7 +21,7 @@ def load_instruction(path: str) -> str:
 from utils import retry_config
 
 API_KEY = os.getenv("GOOGLE_API_KEY")
-LLM_MODEL = "gemini-2.0-flash"
+LLM_MODEL = "gemini-2.5-flash"
 APP_NAME = "Base Agent"
 USER_ID = "guest_user"
 
