@@ -84,9 +84,9 @@ The diagram was created to mirror the conversational + agent orchestration patte
 ## 🗄️ Database Schema (Simplified)
 Key tables:
 - patients, carers, doctors
-- conditions, appointments, referrals, medication_schedules, notifications
+- conditions, appointments, referrals, medication_schedules (intake_time is SQL TIME, 24h HH:MM[:SS], one row = one med/time, medication name now unrestricted), notifications
 - users, login_sessions, user_patient_access
-- conversation_sessions, conversation_messages
+- conversation_sessions_concierge/messages_concierge and conversation_sessions_doctor/messages_doctor (separate chat history per assistant)
 
 ---
 
