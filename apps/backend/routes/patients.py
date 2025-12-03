@@ -1,10 +1,9 @@
 from datetime import date
 
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
 from sqlalchemy import select
 from database import get_db
-from models.models import Patient, Condition, Appointment, Referral, Doctor, Carer, UserAccount, UserPatientAccess, MedicationSchedule
+from models.models import Patient, Condition, Appointment, Referral, Doctor, Carer, MedicationSchedule
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/patients", tags=["patients"])
@@ -26,49 +25,6 @@ def _calculate_age_group(birthdate: date | None):
     if age >= 65:
         return age, "elderly"
     return age, "adult"
-
-
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-
-
-@router.post("/login")
-async def login_user(
-    credentials: LoginRequest,
-    db: AsyncSession = Depends(get_db)
-):
-    user = await db.scalar(
-        select(UserAccount).where(
-            UserAccount.username == credentials.username,
-            UserAccount.password == credentials.password,
-        )
-    )
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-
-    role = (user.role or "").lower()
-
-    access_rows = (
-        await db.scalars(
-            select(UserPatientAccess.patient_id).where(UserPatientAccess.user_id == user.id)
-        )
-    ).all()
-    patient_ids = list(set(access_rows))
-    if not patient_ids and user.patient_id:
-        patient_ids = [user.patient_id]
-
-    patient_rows = (
-        await db.scalars(select(Patient).where(Patient.id.in_(patient_ids)))
-    ).all() if patient_ids else []
-
-    patients_payload = [{"id": p.id, "full_name": p.full_name} for p in patient_rows]
-
-    return {
-        "role": role,
-        "user": {"id": user.id, "username": user.username, "full_name": user.username},
-        "patients": patients_payload,
-    }
 
 
 @router.get("/{patient_id}")
