@@ -103,14 +103,14 @@ async def handle_patient_action(action: str, payload: Dict[str, Any]) -> Dict[st
             data = {k: v for k, v in payload.items() if k != "patient_id"}
             if not data:
                 return {"status": "missing_fields", "missing": REQUIRED_FIELDS, "message": "Provide fields to update"}
-            p = await svc.update(patient_id, **data)
+            p = await patient_svc.update(patient_id, **data)
             return {"status": "success", "action": action, "data": _to_dict(p)}
 
         if action == "delete_patient":
             patient_id = payload.get("patient_id")
             if not patient_id:
                 return {"status": "missing_fields", "missing": ["patient_id"], "message": "patient_id is required"}
-            await svc.delete(patient_id)
+            await patient_svc.delete(patient_id)
             return {"status": "success", "action": action, "data": {"patient_id": patient_id}}
 
         if action == "list_patients":

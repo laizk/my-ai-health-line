@@ -76,6 +76,11 @@ page_ai_assistant = st.Page(
     title="Concierge AI",
     icon=":material/cognition_2:",
 )
+page_doctor_ai = st.Page(
+    "pages/ai/doctor_ai_assistant.py",
+    title="Doctor AI Assistant",
+    icon=":material/clinical_notes:",
+)
 page_doctor = st.Page(
     "pages/doctor/doctor.py", title="Patient Information", icon=":material/search:"
 )
@@ -104,12 +109,12 @@ if auth:
     elif role == "doctor":
         nav_map = {
             "Doctor": [page_patient_profile],
-            "AI": [page_ai_assistant],
+            "AI": [page_doctor_ai],
         }
     elif role == "admin":
         nav_map = {
             "Admin": [page_patient_profile],
-            "AI": [page_ai_assistant],
+            "AI": [page_ai_assistant, page_doctor_ai],
         }
     else:
         nav_map = {

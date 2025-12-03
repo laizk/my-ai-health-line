@@ -7,10 +7,10 @@ from google.genai import types
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from agents.agent import runner, session_service, memory_service, APP_NAME, USER_ID
+from agents.concierge_agent import runner, session_service, memory_service, APP_NAME, USER_ID
 from agents.user_context import update_user_context_from_db
 from database import get_db
-from models.models import ConversationSession, ConversationMessage
+from models.models import ConversationSessionConcierge, ConversationMessageConcierge
 from google.adk.sessions import InMemorySessionService
 
 router = APIRouter()
@@ -24,12 +24,12 @@ class AskRequest(BaseModel):
 
 async def _ensure_db_session(db: AsyncSession, session_id: str, user_id: str):
     session_row = await db.scalar(
-        select(ConversationSession).where(ConversationSession.session_id == session_id)
+        select(ConversationSessionConcierge).where(ConversationSessionConcierge.session_id == session_id)
     )
     if session_row:
         return session_row
 
-    session_row = ConversationSession(
+    session_row = ConversationSessionConcierge(
         session_id=session_id,
         app_name=APP_NAME,
         user_id=user_id,
@@ -42,15 +42,15 @@ async def _ensure_db_session(db: AsyncSession, session_id: str, user_id: str):
 
 async def _get_latest_session_id(db: AsyncSession, user_id: str) -> Optional[str]:
     row = await db.scalar(
-        select(ConversationSession.session_id)
-        .where(ConversationSession.app_name == APP_NAME, ConversationSession.user_id == user_id)
-        .order_by(ConversationSession.created_at.desc())
+        select(ConversationSessionConcierge.session_id)
+        .where(ConversationSessionConcierge.app_name == APP_NAME, ConversationSessionConcierge.user_id == user_id)
+        .order_by(ConversationSessionConcierge.created_at.desc())
     )
     return row
 
 
 async def _append_message(db: AsyncSession, session_id: str, role: str, content: str):
-    msg = ConversationMessage(session_id=session_id, role=role, content=content)
+    msg = ConversationMessageConcierge(session_id=session_id, role=role, content=content)
     db.add(msg)
     await db.commit()
 
@@ -58,9 +58,9 @@ async def _append_message(db: AsyncSession, session_id: str, role: str, content:
 async def _load_history(db: AsyncSession, session_id: str) -> List[Dict[str, str]]:
     rows = (
         await db.scalars(
-            select(ConversationMessage)
-            .where(ConversationMessage.session_id == session_id)
-            .order_by(ConversationMessage.created_at)
+            select(ConversationMessageConcierge)
+            .where(ConversationMessageConcierge.session_id == session_id)
+            .order_by(ConversationMessageConcierge.created_at)
         )
     ).all()
     return [{"role": r.role, "content": r.content, "timestamp": r.created_at.isoformat() if r.created_at else None} for r in rows]

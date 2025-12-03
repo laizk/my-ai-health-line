@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
-from models.models import ConversationSession, ConversationMessage
+from models.models import ConversationSessionConcierge, ConversationMessageConcierge
 
 router = APIRouter(prefix="/ask", tags=["ask"])
 
@@ -12,9 +12,9 @@ router = APIRouter(prefix="/ask", tags=["ask"])
 async def get_history_by_user(user_id: str, db: AsyncSession = Depends(get_db)):
     sessions = (
         await db.scalars(
-            select(ConversationSession.session_id)
-            .where(ConversationSession.user_id == user_id)
-            .order_by(ConversationSession.created_at.desc())
+            select(ConversationSessionConcierge.session_id)
+            .where(ConversationSessionConcierge.user_id == user_id)
+            .order_by(ConversationSessionConcierge.created_at.desc())
         )
     ).all()
 
@@ -23,9 +23,9 @@ async def get_history_by_user(user_id: str, db: AsyncSession = Depends(get_db)):
 
     history = (
         await db.scalars(
-            select(ConversationMessage)
-            .where(ConversationMessage.session_id.in_(sessions))
-            .order_by(ConversationMessage.created_at)
+            select(ConversationMessageConcierge)
+            .where(ConversationMessageConcierge.session_id.in_(sessions))
+            .order_by(ConversationMessageConcierge.created_at)
         )
     ).all()
 

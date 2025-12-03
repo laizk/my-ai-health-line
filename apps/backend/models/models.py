@@ -57,8 +57,8 @@ class MedicationSchedule(Base):
     status = Column(String)  # pending, taken, missed
     remarks = Column(Text)
 
-class ConversationSession(Base):
-    __tablename__ = "conversation_sessions"
+class ConversationSessionConcierge(Base):
+    __tablename__ = "conversation_sessions_concierge"
 
     id = Column(Integer, primary_key=True)
     session_id = Column(String, unique=True, index=True)
@@ -66,11 +66,29 @@ class ConversationSession(Base):
     user_id = Column(String)
     created_at = Column(TIMESTAMP, server_default=func.now())
 
-class ConversationMessage(Base):
-    __tablename__ = "conversation_messages"
+class ConversationMessageConcierge(Base):
+    __tablename__ = "conversation_messages_concierge"
 
     id = Column(Integer, primary_key=True)
-    session_id = Column(String, ForeignKey("conversation_sessions.session_id", ondelete="CASCADE"))
+    session_id = Column(String, ForeignKey("conversation_sessions_concierge.session_id", ondelete="CASCADE"))
+    role = Column(String)   # user | assistant
+    content = Column(Text)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+
+class ConversationSessionDoctor(Base):
+    __tablename__ = "conversation_sessions_doctor"
+
+    id = Column(Integer, primary_key=True)
+    session_id = Column(String, unique=True, index=True)
+    app_name = Column(String)
+    user_id = Column(String)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+
+class ConversationMessageDoctor(Base):
+    __tablename__ = "conversation_messages_doctor"
+
+    id = Column(Integer, primary_key=True)
+    session_id = Column(String, ForeignKey("conversation_sessions_doctor.session_id", ondelete="CASCADE"))
     role = Column(String)   # user | assistant
     content = Column(Text)
     created_at = Column(TIMESTAMP, server_default=func.now())

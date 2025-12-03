@@ -85,7 +85,7 @@ CREATE TABLE medication_schedules (
 );
 
 -- Conversation sessions and messages for AI assistant
-CREATE TABLE conversation_sessions (
+CREATE TABLE conversation_sessions_concierge (
     id SERIAL PRIMARY KEY,
     session_id VARCHAR(100) UNIQUE NOT NULL,
     app_name VARCHAR(100),
@@ -93,9 +93,25 @@ CREATE TABLE conversation_sessions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE conversation_messages (
+CREATE TABLE conversation_messages_concierge (
     id SERIAL PRIMARY KEY,
-    session_id VARCHAR(100) REFERENCES conversation_sessions(session_id) ON DELETE CASCADE,
+    session_id VARCHAR(100) REFERENCES conversation_sessions_concierge(session_id) ON DELETE CASCADE,
+    role VARCHAR(20) NOT NULL,        -- user | assistant
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE conversation_sessions_doctor (
+    id SERIAL PRIMARY KEY,
+    session_id VARCHAR(100) UNIQUE NOT NULL,
+    app_name VARCHAR(100),
+    user_id VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE conversation_messages_doctor (
+    id SERIAL PRIMARY KEY,
+    session_id VARCHAR(100) REFERENCES conversation_sessions_doctor(session_id) ON DELETE CASCADE,
     role VARCHAR(20) NOT NULL,        -- user | assistant
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
