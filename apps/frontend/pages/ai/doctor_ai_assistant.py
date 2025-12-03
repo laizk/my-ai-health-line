@@ -56,15 +56,17 @@ if prompt := st.chat_input("Ask the Doctor AI..."):
             else:
                 text = raw
             placeholder.empty()
-            st.markdown(text)
+            # Show assistant text only if we are not replacing with backend history
             # Prefer backend history to avoid duplicates
             backend_history = data.get("history")
             if backend_history:
                 st.session_state.doctor_ai_messages = backend_history
+                st.rerun()
             else:
                 # prevent duplicate consecutive assistant messages
                 if not st.session_state.doctor_ai_messages or st.session_state.doctor_ai_messages[-1]["content"] != text:
                     st.session_state.doctor_ai_messages.append({"role": "assistant", "content": text})
+                st.markdown(text)
     except requests.exceptions.Timeout:
         st.error("Request timed out. Please try again.")
     except Exception as e:
