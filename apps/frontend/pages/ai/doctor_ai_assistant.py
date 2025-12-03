@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 import time
-from config import DOCTOR_ASK_API
+from config import DOCTOR_ASK_API, DOCTOR_HISTORY_API, DOCTOR_HISTORY_BY_USER_API
 from auth_utils import hydrate_auth_from_params
 
 # Restore auth
@@ -20,6 +20,39 @@ if "doctor_ai_messages" not in st.session_state:
     st.session_state.doctor_ai_messages = []
 if "doctor_ai_session_id" not in st.session_state:
     st.session_state.doctor_ai_session_id = None
+
+def load_history():
+    # Try by session_id first
+    if st.session_state.doctor_ai_session_id:
+        try:
+            resp = requests.get(
+                DOCTOR_HISTORY_API, params={"session_id": st.session_state.doctor_ai_session_id}, timeout=8
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                st.session_state.doctor_ai_messages = data.get("history", [])
+                return
+        except Exception:
+            pass
+    # Fallback: by user_id if logged in
+    if auth and auth.get("user", {}).get("username"):
+        try:
+            resp = requests.get(
+                DOCTOR_HISTORY_BY_USER_API,
+                params={"user_id": auth["user"]["username"]},
+                timeout=8,
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                st.session_state.doctor_ai_messages = data.get("history", [])
+                sessions = data.get("sessions") or []
+                if sessions:
+                    st.session_state.doctor_ai_session_id = sessions[0]
+        except Exception:
+            pass
+
+
+load_history()
 
 for msg in st.session_state.doctor_ai_messages:
     with st.chat_message(msg["role"]):

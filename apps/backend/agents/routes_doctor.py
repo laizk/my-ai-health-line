@@ -96,3 +96,39 @@ async def doctor_history(session_id: str, db: AsyncSession = Depends(get_db)):
     if not history:
         raise HTTPException(status_code=404, detail="No history for session_id")
     return {"session_id": session_id, "history": history}
+
+
+@router.get("/history/by_user")
+async def doctor_history_by_user(user_id: str, db: AsyncSession = Depends(get_db)):
+    sessions = (
+        await db.scalars(
+            select(ConversationSessionDoctor.session_id)
+            .where(ConversationSessionDoctor.user_id == user_id)
+            .order_by(ConversationSessionDoctor.created_at.desc())
+        )
+    ).all()
+
+    if not sessions:
+        raise HTTPException(status_code=404, detail="No history for user")
+
+    history = (
+        await db.scalars(
+            select(ConversationMessageDoctor)
+            .where(ConversationMessageDoctor.session_id.in_(sessions))
+            .order_by(ConversationMessageDoctor.created_at)
+        )
+    ).all()
+
+    return {
+        "user_id": user_id,
+        "sessions": sessions,
+        "history": [
+            {
+                "session_id": msg.session_id,
+                "role": msg.role,
+                "content": msg.content,
+                "timestamp": msg.created_at.isoformat() if msg.created_at else None,
+            }
+            for msg in history
+        ],
+    }
