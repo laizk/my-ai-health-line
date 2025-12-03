@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey, Text, TIMESTAMP
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, Text, TIMESTAMP, Time
 from sqlalchemy.sql import func
 from sqlalchemy.orm import declarative_base, relationship
 
@@ -53,7 +53,7 @@ class MedicationSchedule(Base):
     frequency = Column(String)
     start_date = Column(Date)
     end_date = Column(Date)
-    intake_time = Column(String)
+    intake_time = Column(Time)
     status = Column(String)  # pending, taken, missed
     remarks = Column(Text)
 

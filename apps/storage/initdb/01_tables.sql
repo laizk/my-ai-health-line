@@ -79,7 +79,7 @@ CREATE TABLE medication_schedules (
     frequency VARCHAR(100),
     start_date DATE,
     end_date DATE,
-    intake_time VARCHAR(50),
+    intake_time TIME NOT NULL,
     status VARCHAR(20) DEFAULT 'pending', -- pending, taken, missed
     remarks TEXT
 );

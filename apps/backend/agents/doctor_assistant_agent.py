@@ -14,7 +14,7 @@ from agents.utils import load_instruction, retry_config
 
 
 API_KEY = os.getenv("GOOGLE_API_KEY")
-LLM_MODEL = "gemini-2.5-flash-lite"
+LLM_MODEL = "gemini-2.5-flash"
 APP_NAME = "Doctor Assistant Agent"
 
 

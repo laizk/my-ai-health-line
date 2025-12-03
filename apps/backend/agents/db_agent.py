@@ -7,6 +7,7 @@ from agents.tools.patient_tools import handle_patient_action
 from agents.tools.carer_tools import handle_carer_action
 from agents.tools.user_tools import handle_user_action
 from agents.tools.condition_tools import handle_condition_action
+from agents.tools.medication_tools import handle_medication_action
 from agents.utils import load_instruction, retry_config
 
 LLM_MODEL = "gemini-2.5-flash"
@@ -23,6 +24,7 @@ db_agent = LlmAgent(
             handle_carer_action,
             handle_user_action,
             handle_condition_action,
+            handle_medication_action,
     ],
 )
 

@@ -89,10 +89,14 @@ INSERT INTO notifications (patient_id, message, status) VALUES
 
 -- Medication schedules (dummy)
 INSERT INTO medication_schedules (patient_id, medication_name, dosage, frequency, start_date, end_date, intake_time, status, remarks) VALUES
-(1, 'Lisinopril', '10mg', 'Once daily', '2025-01-01', '2025-03-01', '08:00', 'taken', 'No issues, BP improving'),
-(3, 'Metformin', '500mg', 'Twice daily', '2025-01-05', '2025-04-05', '08:00', 'pending', 'Reminder sent this morning'),
-(3, 'Metformin', '500mg', 'Twice daily', '2025-01-05', '2025-04-05', '20:00', 'missed', 'Patient reported nausea, follow up needed'),
-(4, 'Salbutamol Inhaler', '2 puffs', 'As needed', '2025-01-01', '2025-02-28', 'PRN', 'taken', 'Used during exercise'),
-(5, 'Paracetamol', '250mg', 'Every 6 hours', '2025-01-20', '2025-01-27', '06:00', 'pending', 'Guardian to confirm intake'),
-(5, 'Paracetamol', '250mg', 'Every 6 hours', '2025-01-20', '2025-01-27', '12:00', 'pending', 'Guardian to confirm intake'),
-(5, 'Paracetamol', '250mg', 'Every 6 hours', '2025-01-20', '2025-01-27', '18:00', 'taken', 'Dose taken at clinic');
+(1, 'Lisinopril', '10mg', 'Once daily', '2025-01-01', '2025-03-01', '08:00:00', 'taken', 'No issues, BP improving'),
+(3, 'Metformin', '500mg', 'Twice daily', '2025-01-05', '2025-04-05', '08:00:00', 'pending', 'Reminder sent this morning'),
+(3, 'Metformin', '500mg', 'Twice daily', '2025-01-05', '2025-04-05', '20:00:00', 'missed', 'Patient reported nausea, follow up needed'),
+(4, 'Salbutamol Inhaler', '2 puffs', 'As needed', '2025-01-01', '2025-02-28', '09:00:00', 'taken', 'Timed for morning activity'),
+(5, 'Paracetamol', '250mg', 'Every 6 hours', '2025-01-20', '2025-01-27', '06:00:00', 'pending', 'Guardian to confirm intake'),
+(5, 'Paracetamol', '250mg', 'Every 6 hours', '2025-01-20', '2025-01-27', '12:00:00', 'pending', 'Guardian to confirm intake'),
+(5, 'Paracetamol', '250mg', 'Every 6 hours', '2025-01-20', '2025-01-27', '18:00:00', 'taken', 'Dose taken at clinic'),
+(2, 'Amoxicillin', '500mg', 'Three times daily', '2025-02-01', '2025-02-10', '08:00:00', 'pending', 'Start of antibiotic course'),
+(2, 'Amoxicillin', '500mg', 'Three times daily', '2025-02-01', '2025-02-10', '14:00:00', 'pending', 'Start of antibiotic course'),
+(2, 'Amoxicillin', '500mg', 'Three times daily', '2025-02-01', '2025-02-10', '20:00:00', 'pending', 'Start of antibiotic course'),
+(6, 'Atorvastatin', '20mg', 'Once daily', '2025-02-01', '2025-08-01', '21:00:00', 'pending', 'Monitor lipids quarterly');

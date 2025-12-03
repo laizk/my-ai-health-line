@@ -54,6 +54,13 @@ def load_history():
 
 load_history()
 
+def type_writer(text: str, container, speed: float = 0.02):
+    typed = ""
+    for ch in text:
+        typed += ch
+        container.markdown(typed)
+        time.sleep(speed)
+
 for msg in st.session_state.doctor_ai_messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
@@ -65,10 +72,10 @@ if prompt := st.chat_input("Ask the Doctor AI..."):
 
     try:
         with st.chat_message("assistant"):
-            placeholder = st.empty()
+            animated_placeholder = st.empty()
             for i in range(6):
                 dots = "." * ((i % 3) + 1)
-                placeholder.markdown(f"⏳ *Thinking{dots}*")
+                animated_placeholder.markdown(f"⏳ *Thinking{dots}*")
                 time.sleep(0.3)
 
             resp = requests.post(
@@ -82,24 +89,22 @@ if prompt := st.chat_input("Ask the Doctor AI..."):
             )
             data = resp.json()
             st.session_state.doctor_ai_session_id = data.get("session_id", st.session_state.doctor_ai_session_id)
-            # Response may be structured; attempt to extract text
             raw = data.get("response", "")
             if isinstance(raw, list):
                 text = raw[0].get("content", {}).get("parts", [{}])[0].get("text", "")
             else:
-                text = raw
-            placeholder.empty()
-            # Show assistant text only if we are not replacing with backend history
-            # Prefer backend history to avoid duplicates
+                text = raw or ""
+
+            animated_placeholder.empty()
+
             backend_history = data.get("history")
             if backend_history:
                 st.session_state.doctor_ai_messages = backend_history
                 st.rerun()
             else:
-                # prevent duplicate consecutive assistant messages
                 if not st.session_state.doctor_ai_messages or st.session_state.doctor_ai_messages[-1]["content"] != text:
                     st.session_state.doctor_ai_messages.append({"role": "assistant", "content": text})
-                st.markdown(text)
+                type_writer(text, animated_placeholder, speed=0.02)
     except requests.exceptions.Timeout:
         st.error("Request timed out. Please try again.")
     except Exception as e:

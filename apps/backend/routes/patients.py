@@ -135,7 +135,7 @@ async def get_patient_profile(
             "frequency": m.frequency,
             "start_date": m.start_date,
             "end_date": m.end_date,
-            "intake_time": m.intake_time,
+            "intake_time": m.intake_time.isoformat() if m.intake_time else None,
             "status": m.status,
             "remarks": m.remarks,
         }
