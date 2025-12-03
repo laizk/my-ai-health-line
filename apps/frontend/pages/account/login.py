@@ -16,7 +16,6 @@ if auth:
         st.rerun()
 else:
     st.subheader("🔐 Login")
-    role = st.selectbox("I am a", ["patient", "carer", "doctor", "admin"])
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
     if st.button("Log In"):
