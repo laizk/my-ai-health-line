@@ -1,8 +1,12 @@
 from datetime import date
+import random
+import string
 from typing import Any, Dict
 
 from database import AsyncSessionLocal
 from services.carer_service import CarerService
+from services.user_service import UserService
+from services.user_patient_access_service import UserPatientAccessService
 
 REQUIRED_FIELDS = [
     "patient_id",
@@ -30,6 +34,8 @@ async def handle_carer_action(action: str, payload: Dict[str, Any]) -> Dict[str,
 
     async with AsyncSessionLocal() as db:
         svc = CarerService(db)
+        user_svc = UserService(db)
+        upa_svc = UserPatientAccessService(db)
 
         if action == "create_carer":
             missing = [f for f in REQUIRED_FIELDS if payload.get(f) in (None, "", [])]
@@ -40,7 +46,29 @@ async def handle_carer_action(action: str, payload: Dict[str, Any]) -> Dict[str,
                     "message": "Please ask the user to provide the missing information.",
                 }
             carer = await svc.create(**payload)
-            return {"status": "success", "action": action, "data": _to_dict(carer)}
+
+            # auto-create user for carer and map access
+            base_name = (payload.get("full_name") or "").strip().lower().replace(" ", ".")
+            username = payload.get("username") or (base_name if base_name else f"carer_{carer.id}")
+            password = "".join(random.choices(string.ascii_letters + string.digits, k=8))
+            user = await user_svc.create(
+                username=username,
+                password=password,
+                role="carer",
+                carer_id=carer.id,
+                patient_id=None,
+                doctor_id=None,
+            )
+            await upa_svc.create(user_id=user.id, patient_id=carer.patient_id)
+
+            return {
+                "status": "success",
+                "action": action,
+                "data": {
+                    **_to_dict(carer),
+                    "user": {"id": user.id, "username": user.username, "role": user.role},
+                },
+            }
 
         if action == "read_carer":
             carer_id = payload.get("carer_id")

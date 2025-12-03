@@ -1,8 +1,12 @@
 from typing import Any, Dict
 from datetime import date
+import random
+import string
 
 from database import AsyncSessionLocal
 from services.patient_service import PatientService
+from services.user_service import UserService
+from services.user_patient_access_service import UserPatientAccessService
 
 REQUIRED_FIELDS = [
     "full_name",
@@ -39,24 +43,49 @@ async def handle_patient_action(action: str, payload: Dict[str, Any]) -> Dict[st
             return {"status": "error", "message": "birthdate must be YYYY-MM-DD"}
 
     async with AsyncSessionLocal() as db:
-        svc = PatientService(db)
+        patient_svc = PatientService(db)
+        user_svc = UserService(db)
+        upa_svc = UserPatientAccessService(db)
 
         if action == "create_patient":
             missing = [f for f in REQUIRED_FIELDS if not payload.get(f)]
             if missing:
                 return {"status": "missing_fields", "missing": missing, "message": "Please ask the user to provide the missing information."}
-            p = await svc.create(**payload)
-            return {"status": "success", "action": action, "data": {"patient_id": p.id, **_to_dict(p)}}
+            p = await patient_svc.create(**payload)
+
+            # auto-create user and access mapping
+            base_name = (payload.get("full_name") or "").strip().lower().replace(" ", ".")
+            username = payload.get("username") or (base_name if base_name else f"patient_{p.id}")
+            password = "".join(random.choices(string.ascii_letters + string.digits, k=8))
+            user = await user_svc.create(
+                username=username,
+                password=password,
+                role="patient",
+                patient_id=p.id,
+                doctor_id=None,
+                carer_id=None,
+            )
+            await upa_svc.create(user_id=user.id, patient_id=p.id)
+
+            return {
+                "status": "success",
+                "action": action,
+                "data": {
+                    "patient_id": p.id,
+                    **_to_dict(p),
+                    "user": {"id": user.id, "username": user.username, "role": user.role},
+                },
+            }
 
         if action == "read_patient":
             patient_id = payload.get("patient_id")
             full_name = payload.get("full_name")
             bdate = payload.get("birthdate")
             if patient_id:
-                p = await svc.get(patient_id)
+                p = await patient_svc.get(patient_id)
                 return {"status": "success", "action": action, "data": _to_dict(p)}
             if full_name and bdate:
-                rows = await svc.list()
+                rows = await patient_svc.list()
                 for p in rows:
                     if p.full_name == full_name and p.birthdate == bdate:
                         return {"status": "success", "action": action, "data": _to_dict(p)}
@@ -85,7 +114,7 @@ async def handle_patient_action(action: str, payload: Dict[str, Any]) -> Dict[st
             return {"status": "success", "action": action, "data": {"patient_id": patient_id}}
 
         if action == "list_patients":
-            rows = await svc.list()
+            rows = await patient_svc.list()
             return {"status": "success", "action": action, "data": [_to_dict(p) for p in rows]}
 
         return {"status": "error", "message": f"Unsupported action: {action}"}

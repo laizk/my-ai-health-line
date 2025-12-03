@@ -11,6 +11,7 @@ from google.adk.tools.function_tool import FunctionTool
 from agents.tools.account_tools import identify_user
 from agents.tools.patient_tools import handle_patient_action
 from agents.tools.carer_tools import handle_carer_action
+from agents.tools.user_tools import handle_user_action
 
 
 def load_instruction(path: str) -> str:
@@ -36,8 +37,9 @@ db_agent = LlmAgent(
         os.path.join(os.path.dirname(__file__), "instructions", "db_agent.txt")
     ),
     tools=[
-        handle_patient_action,
-        handle_carer_action,
+            handle_patient_action,
+            handle_carer_action,
+            handle_user_action,
     ],
 )
 
